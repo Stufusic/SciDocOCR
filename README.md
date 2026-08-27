@@ -12,7 +12,7 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Tests](https://img.shields.io/badge/Unit%20Tests-36%2F36%20Passed-brightgreen)](tests/)
 
-[3 Cách Khởi Chạy](#-3-cách-khởi-chạy-ứng-dụng) • [Cấu Hình & Page/Chunk](#-lưu-ý-về-phân-bổ-trang--chunk-page--chunk) • [Hướng Dẫn Cài Đặt](#-hướng-dẫn-cấu-hình-chi-tiết) • [Tính Năng](#-tính-năng-nổi-bật) • [Kiến Trúc Pipeline](#-kiến-trúc-hệ-thống--pipeline-xử-lý)
+[3 Cách Khởi Chạy](#-3-cách-khởi-chạy-ứng-dụng) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước) • [Cấu Hình & Page/Chunk](#-lưu-ý-về-phân-bổ-trang--chunk-page--chunk) • [Cài Đặt](#-hướng-dẫn-cấu-hình-chi-tiết) • [Kiến Trúc Pipeline](#-kiến-trúc-hệ-thống--pipeline-xử-lý)
 
 </div>
 
@@ -64,6 +64,54 @@ python -m app.main
 
 ---
 
+## 📖 Hướng Dẫn Sử Dụng Từng Bước (User Guide)
+
+Giao diện Studio được thiết kế theo cấu trúc 3 khung nhìn trực quan (**Triple-Pane Workspace**): Cây thư mục dự án (bên trái), Trình xem tài liệu PDF (ở giữa) và Trình biên tập Markdown / LaTeX / Chat Assistant (bên phải).
+
+```
+┌──────────────┬────────────────────────┬──────────────────────────────────────┐
+│  Dự Án (Tree)│   Trình Xem PDF Gốc    │  Markdown  │  LaTeX  │ 💬 AI Assistant│
+├──────────────┼────────────────────────┼──────────────────────────────────────┤
+│ 📄 Page 1    │                        │                                      │
+│ 📄 Page 2    │  [Hiển thị trang PDF   │  [Văn bản bóc tách & công thức toán  │
+│ 📄 Page 3    │   kèm khung nhận diện] │   hiển thị trực tiếp theo thời gian  │
+│ ...          │                        │   thực kèm hình ảnh và bảng biểu]    │
+└──────────────┴────────────────────────┴──────────────────────────────────────┘
+```
+
+### Bước 1: Mở File PDF Khoa học
+- Bấm vào nút **`📁 Open PDF`** trên thanh công cụ (Toolbar) và chọn tệp PDF cần xử lý.
+- Hệ thống sẽ tự động tạo không gian làm việc và nạp các trang tài liệu vào danh sách.
+
+### Bước 2: Bóc tách Bố cục & Nhận diện Công thức Toán (`⚡ Process All`)
+- Bấm vào nút **`⚡ Process All`** trên thanh công cụ.
+- Hệ thống sẽ tự động phân chia tài liệu theo từng chunk (4 trang/chunk), gọi động cơ OCR bóc tách văn bản đa cột, nhận diện công thức LaTeX và trích xuất hình vẽ vào thư mục `images/`.
+- Tiến trình xử lý hiển thị trực tiếp ở thanh trạng thái phía dưới.
+
+### Bước 3: Dịch thuật Bảo toàn Công thức (`🌐 Translate`)
+- Bấm vào nút **`🌐 Translate`** trên thanh công cụ để dịch toàn bộ tài liệu sang ngôn ngữ đích (Tiếng Việt).
+- Toàn bộ công thức toán học (`$$...$$`, `$x$`), mã nguồn và trích dẫn `\cite{}`, `\ref{}` được bảo vệ tuyệt đối và khôi phục nguyên vẹn 100% sau khi dịch.
+
+### Bước 4: Tương tác với Trợ lý AI Hỏi đáp (`💬 AI Assistant`)
+- Chuyển sang tab **`💬 AI Assistant`** ở khung bên phải:
+  1. Chọn **Nhà cung cấp (Provider)**: Google Gemini, LM Studio (Local), OpenAI, Anthropic Claude, OpenRouter, hoặc Custom API.
+  2. Hệ thống sẽ **tự động kết nối trực tiếp đến API để nạp toàn bộ danh sách mô hình mới nhất đang hoạt động** vào thanh cuộn chọn mô hình.
+  3. Bấm **`⚙ API/URL`** nếu bạn muốn xem hoặc dán nhanh API Key / Base URL trực tiếp trong khung chat.
+  4. Nhập câu hỏi về tài liệu, giải thích công thức toán hoặc yêu cầu tóm tắt. Câu trả lời được tự động lọc sạch các chuỗi suy nghĩ nội bộ để luôn ngắn gọn, chính xác.
+
+### Bước 5: Soát lỗi Công thức có Độ tin cậy Thấp (`🔍 Review Mode`)
+- Nếu tài liệu có các công thức mờ hoặc chất lượng scan kém, nút **`🔍 Review (N)`** ở thanh trạng thái phía dưới sẽ sáng lên.
+- Bấm vào nút Review để mở cửa sổ đối soát: so sánh trực tiếp hình ảnh cắt từ PDF gốc với mã LaTeX nhận diện được, cho phép bạn Chấp nhận (**Accept**), Chỉnh sửa (**Edit**) hoặc Hủy bỏ (**Reject**).
+
+### Bước 6: Xuất bản Đa Định dạng (`📤 Export...`)
+- Bấm vào nút **`📤 Export...`** trên thanh công cụ.
+- Tùy chọn định dạng cần xuất:
+  - **Markdown (`.md`)**: Kèm toàn bộ thư mục hình ảnh `images/`.
+  - **LaTeX Source (`.tex`)**: Mã nguồn LaTeX chuẩn hóa với các gói `amsmath`, `amssymb`, `graphicx`.
+  - **Tài liệu PDF (`.pdf`)**: Tự động biên dịch qua XeLaTeX hoặc bộ tạo PDF tích hợp sẵn.
+
+---
+
 ## ⚙️ Lưu Ý Về Phân Bổ Trang / Chunk (Page / Chunk)
 
 Tài liệu khoa học thường rất nặng, chứa hàng trăm công thức ma trận, tích phân và sơ đồ mạng. Để tối ưu hóa hiệu năng, hệ thống áp dụng cơ chế **Phân mảnh thông minh (Smart 4-Page Chunking)**:
@@ -73,7 +121,7 @@ Tài liệu 14 Trang  ➔  [Chunk 1: Tr 1-4]  +  [Chunk 2: Tr 5-8]  +  [Chunk 3:
 ```
 
 ### 🎯 Tại sao lại chia theo Chunk?
-1. **Chống tràn bộ nhớ GPU VRAM**: Các mô hình AI phân tích bố cục (YOLOv8) và nhận diện công thức (UniMERNet) ngốn nhiều VRAM nếu nạp 20–50 trang cùng lúc. Chia chunk giữ mức VRAM luôn ổn định dưới 6–8 GB.
+1. **Chống tràn bộ nhớ GPU VRAM**: Các mô hình AI phân tích bố cục và nhận diện công thức ngốn nhiều VRAM nếu nạp 20–50 trang cùng lúc. Chia chunk giữ mức VRAM luôn ổn định.
 2. **Khả năng chịu lỗi (Fault-Tolerance)**: Nếu 1 trang trong tài liệu gặp sự cố, các chunk còn lại vẫn được lưu nguyên vẹn vào bộ nhớ đệm Cache SHA-256.
 3. **Tối ưu Timeout (600 giây)**: Mỗi chunk được cấp hạn mức thời gian xử lý lên tới 10 phút, đảm bảo ngay cả những trang toán học phức tạp nhất cũng được giải mã hoàn chỉnh.
 
@@ -97,12 +145,10 @@ Bạn có thể cấu hình nhanh các tham số qua giao diện **`⚙ Settings
 ├──────────────────────────────────────────────────────────────────┤
 │ AI Engine Mode:      [ Auto (Tự động nhận diện)               ▼] │
 │ Translation Engine:  [ Google Translate (Miễn phí / Tốc độ cao)▼]│
-│ Active Provider:     [ Google Gemini                          ▼] │
-│ API Key:             [ AQ.Ab8RN6LTwkSbw9OBLMcKS7Kw7sJpn...    👁]│
-│ Base URL:            [ https://generativelanguage.googleapis... ]│
-│ Model:               [ gemini-2.5-flash                       ▼]│
-│                                                                  │
-│                     [✓ 50 models khả dụng]                       │
+│ Active Provider:     [ Google Gemini / OpenAI / Claude / LM...▼] │
+│ API Key:             [ ••••••••••••••••••••••••••••••••••••••  👁]│
+│ Base URL:            [ Endpoint URL của nhà cung cấp API...     ]│
+│ Model:               [ (Tự động nạp danh sách model trực tiếp) ▼]│
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -110,12 +156,12 @@ Bạn có thể cấu hình nhanh các tham số qua giao diện **`⚙ Settings
 - **`Auto` (Mặc định - Khuyên dùng)**: Tự động phát hiện mạng và phần cứng. Ưu tiên GPU cục bộ, nếu không có sẽ tự động fallback qua API Online.
 - **`MinerU`**: Sử dụng trực tiếp động cơ MinerU CLI cục bộ với tăng tốc NVIDIA CUDA GPU.
 - **`LM Studio (Local Only)`**: Kết nối trực tiếp máy chủ LM Studio offline (`http://127.0.0.1:1234/v1`) bảo mật dữ liệu tuyệt đối.
-- **`Online Only`**: Sử dụng hoàn toàn các mô hình đám mây (Gemini, GPT-4o, Claude).
+- **`Online Only`**: Sử dụng các nhà cung cấp đám mây (Google Gemini, OpenAI, Claude, OpenRouter).
 
-### 2. Quản Lý Khóa API Đa Nhà Cung Cấp:
-- Hỗ trợ nhập và lưu trữ độc lập khóa API cho **Google Gemini**, **OpenAI**, **Anthropic Claude**, và **OpenRouter / DeepSeek**.
+### 2. Quản Lý Khóa API & Danh Sách Mô Hình Động (Live Model Discovery):
+- Hỗ trợ nhập và lưu trữ độc lập khóa API cho từng nhà cung cấp.
 - Khi chuyển đổi giữa các nhà cung cấp, khóa API và Base URL đã lưu **không bao giờ bị mất** và tự động đồng bộ vào tệp `.env`.
-- Tự động kết nối trực tiếp đến máy chủ để lấy **toàn bộ danh sách model mới nhất đang hoạt động** (Live Model Discovery).
+- **Tự động quét danh sách mô hình thực tế**: Khi bạn chọn nhà cung cấp và nhập API key, hệ thống kết nối trực tiếp đến máy chủ để lấy toàn bộ danh sách model đang hoạt động mà không dùng danh sách cố định cũ.
 
 ### 3. Động Cơ Dịch Thuật (`Translation Engine`):
 - **`Google Translate`**: Dịch thuật tốc độ cực cao, hoàn toàn miễn phí, không yêu cầu API Key và không giới hạn Quota.

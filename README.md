@@ -12,38 +12,31 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Tests](https://img.shields.io/badge/Unit%20Tests-36%2F36%20Passed-brightgreen)](tests/)
 
-[3 Cách Khởi Chạy](#-3-cách-khởi-chạy-ứng-dụng) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước) • [Cấu Hình & Page/Chunk](#-lưu-ý-về-phân-bổ-trang--chunk-page--chunk) • [Cài Đặt](#-hướng-dẫn-cấu-hình-chi-tiết) • [Kiến Trúc Pipeline](#-kiến-trúc-hệ-thống--pipeline-xử-lý)
+[Cài Đặt Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh) • [Dành Cho Máy CPU](#-dành-cho-máy-tính-không-có-gpu-nvidia-cpu-only-mode) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước-user-guide) • [Cấu Hình & Chunking](#-lưu-ý-về-phân-bổ-trang--chunk-page--chunk) • [Kiến Trúc Pipeline](#-kiến-trúc-hệ-thống--pipeline-xử-lý)
 
 </div>
 
 ---
 
-## 🚀 3 Cách Khởi Chạy Ứng Dụng
+## 🚀 Hướng Dẫn Cài Đặt & Khởi Chạy Nhanh
 
-Bạn có thể lựa chọn 1 trong 3 cách khởi chạy tùy theo nhu cầu sử dụng:
+Bạn có thể lựa chọn 1 trong 2 cách đơn giản sau để bắt đầu:
 
-### 👉 Cách 1: Sử dụng Trình Launcher EXE 1-Click (Khuyên dùng cho người dùng cuối ⭐)
-*Không cần cài đặt Python thủ công, không cần gõ lệnh dòng lệnh.*
+### 👉 Cách 1: Khởi chạy 1-Click bằng Script `run.bat` (Khuyên dùng nhất ⭐)
+*Tiện lợi, an toàn, không bị Windows chặn tải file và tự động xử lý mọi thứ.*
 
-1. Vào mục [**Releases**](https://github.com/Stufusic/SciDocOCR/releases) của dự án và tải tệp **`SciDocOCR-Launcher.exe`** (dung lượng siêu nhẹ ~13 MB).
-2. Đặt file vào thư mục dự án và **Double-click mở `SciDocOCR-Launcher.exe`**.
-3. Cửa sổ Launcher thông minh sẽ hiện lên với 2 tùy chọn cài đặt:
-   - **Máy không có GPU rời / Laptop văn phòng**: Bấm nút **`📦 Cài đặt CPU (Không cần GPU)`** (tải siêu tốc chỉ 5–10 giây, bộ thư viện cực nhẹ ~30MB).
-   - **Máy có GPU NVIDIA**: Bấm nút **`⚡ Cài đặt GPU (MinerU CUDA)`** để cài thêm động cơ Deep Learning.
-   - Bấm **"🚀 Khởi chạy SciDoc OCR"** (hệ thống tự động tạo Shortcut ngoài màn hình Desktop và mở ứng dụng)!
-
----
-
-### 👉 Cách 2: Chạy trực tiếp bằng Script `run.bat` (Dành cho người tải file ZIP Source Code)
-*Dành cho người tải toàn bộ mã nguồn về máy.*
-
-1. Tải file ZIP mã nguồn từ GitHub về và giải nén.
+1. Tải mã nguồn về máy: Bấm nút xanh **`Code`** ở đầu trang ➔ Chọn **`Download ZIP`** (hoặc Clone Git) và giải nén ra một thư mục.
 2. **Double-click vào tệp `run.bat`**.
-3. Hệ thống sẽ tự động khởi động ứng dụng chính. Nếu phát hiện máy tính chưa có đủ thư viện phụ thuộc, script sẽ tự động kích hoạt trình Launcher đồ họa để hỗ trợ cài đặt.
+3. Hệ thống sẽ tự động kiểm tra và khởi động ứng dụng:
+   - Nếu máy tính đã có đủ thư viện, ứng dụng **SciDoc OCR Studio** sẽ mở lên ngay lập tức!
+   - Nếu máy tính chưa cài đặt thư viện, trình Launcher đồ họa sẽ tự động mở lên với 2 tùy chọn:
+     - **`📦 Cài đặt CPU (Không cần GPU)`**: Dành cho laptop văn phòng, máy không có card rời (tải siêu tốc trong 5–10 giây).
+     - **`⚡ Cài đặt GPU (MinerU CUDA)`**: Dành cho máy tính có card đồ họa rời NVIDIA.
+     - Sau khi cài đặt xong, hệ thống tự động tạo biểu tượng **Shortcut ngoài màn hình Desktop** và mở ứng dụng!
 
 ---
 
-### 👉 Cách 3: Chạy qua Dòng lệnh CLI (Dành cho Developer / Lập trình viên)
+### 👉 Cách 2: Chạy qua Dòng lệnh CLI (Dành cho Developer / Lập trình viên)
 *Thao tác nhanh chóng qua môi trường dòng lệnh Terminal / CMD / PowerShell.*
 
 ```bash

@@ -1,0 +1,17 @@
+{
+  "models-dir": "C:/Users/KieuKhang/models/PDF-Extract-Kit",
+  "device-mode": "cuda",
+  "table-config": {
+    "model": "table_master",
+    "is_table_recog_enable": true,
+    "max_time": 400
+  },
+  "layout-config": {
+    "model": "doclayout_yolo"
+  },
+  "formula-config": {
+    "mfd_model": "yolo_v8_mfd",
+    "mfr_model": "unimernet_small",
+    "enable": true
+  }
+}

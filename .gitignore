@@ -1,0 +1,34 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches & Environments
+.pytest_cache/
+.coverage
+htmlcov/
+.env
+.venv
+env/
+venv/
+mineru_env/
+
+# App temporary files & User projects
+temp/
+output/
+logs/
+*.log
+.scidoc_projects/
+temp_chunks/
+settings.json
+
+# PyInstaller / Build outputs
+build/
+dist/
+*.spec.bak
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp

@@ -289,8 +289,26 @@ class SciDocLauncherGUI:
         self.btn_install_cpu.config(state="normal")
         self.btn_install_gpu.config(state="normal")
         self.btn_launch.config(state="normal")
-        self.lbl_status.config(text="✓ Cài đặt thành công! Hệ thống sẵn sàng khởi chạy.", fg="#4ade80")
-        messagebox.showinfo("Thành công", "Đã cài đặt hoàn tất các gói phụ thuộc!\nBấm 'Khởi chạy SciDoc OCR' để mở ứng dụng.")
+        self.lbl_status.config(text="✓ Cài đặt thành công! Đang tạo biểu tượng Desktop...", fg="#4ade80")
+
+        # Create Desktop Shortcut with Book Icon
+        ico_file = BUNDLE_DIR / "assets" / "app_icon.ico"
+        if not ico_file.exists():
+            ico_file = APP_DIR / "assets" / "app_icon.ico"
+        ok, msg = create_desktop_shortcut(APP_DIR, ico_file)
+        if ok:
+            self._log(f"✓ Đã tạo thành công biểu tượng ngoài màn hình Desktop:\n  {msg}")
+        else:
+            self._log(f"ℹ Tạo Shortcut Desktop: {msg}")
+
+        self.lbl_status.config(text="✓ Đã tạo Shortcut Desktop & Sẵn sàng khởi chạy!", fg="#4ade80")
+        
+        reply = messagebox.askyesno(
+            "Cài đặt Hoàn tất",
+            "Đã cài đặt thành công và tạo biểu tượng 'SciDoc OCR Studio' ngoài màn hình Desktop!\n\nBạn có muốn mở ứng dụng ngay bây giờ?"
+        )
+        if reply:
+            self._launch_app()
 
     def _on_install_failed(self):
         self.progress.stop()
@@ -303,15 +321,82 @@ class SciDocLauncherGUI:
         self._log("\n🚀 Đang khởi động SciDoc OCR Studio...")
         self.lbl_status.config(text="Đang mở SciDoc OCR Studio...", fg="#38bdf8")
 
-        # Launch app.main via background subprocess and close launcher
-        cmd = [sys.executable, "-m", "app.main"]
+        py_exe = find_python_interpreter()
+        cmd = [py_exe, "-m", "app.main"]
+        self._log(f"Khởi chạy: {' '.join(cmd)}")
         try:
             subprocess.Popen(cmd, cwd=str(APP_DIR))
-            # Close launcher after 1.2s
-            self.root.after(1200, self.root.destroy)
+            # Hide launcher immediately then close
+            self.root.withdraw()
+            self.root.after(800, self.root.destroy)
         except Exception as e:
+            self.root.deiconify()
             self._log(f"✗ Không thể mở ứng dụng: {e}")
-            messagebox.showerror("Lỗi Khởi Chạy", f"Không thể mở ứng dụng:\n{e}")
+            messagebox.showerror("Lỗi Khởi Chạy", f"Không thể mở ứng dụng với Python ({py_exe}):\n{e}")
+
+def find_python_interpreter() -> str:
+    """Finds the actual system Python interpreter executable, avoiding PyInstaller launcher itself."""
+    # If not frozen, sys.executable is the real python
+    if not getattr(sys, "frozen", False):
+        return sys.executable
+
+    # Check common virtualenv or conda paths
+    if "CONDA_PREFIX" in os.environ:
+        conda_py = Path(os.environ["CONDA_PREFIX"]) / "python.exe"
+        if conda_py.exists():
+            return str(conda_py)
+
+    if "VIRTUAL_ENV" in os.environ:
+        venv_py = Path(os.environ["VIRTUAL_ENV"]) / "Scripts" / "python.exe"
+        if venv_py.exists():
+            return str(venv_py)
+
+    # Check PATH for python, py, python3
+    for candidate in ["python", "py", "python3"]:
+        path = shutil.which(candidate)
+        if path and not path.lower().endswith("scidococr-launcher.exe"):
+            return path
+
+    return "python"
+
+def create_desktop_shortcut(app_dir: Path, icon_path: Path) -> Tuple[bool, str]:
+    """Creates a native Windows Desktop Shortcut for SciDoc OCR Studio with the Book Icon."""
+    try:
+        desktop_dir = Path.home() / "Desktop"
+        if not desktop_dir.exists():
+            desktop_dir = Path(os.environ.get("USERPROFILE", str(Path.home()))) / "Desktop"
+
+        shortcut_path = desktop_dir / "SciDoc OCR Studio.lnk"
+        
+        # Target: run.bat if exists, or python -m app.main
+        run_bat = app_dir / "run.bat"
+        if run_bat.exists():
+            target_file = str(run_bat)
+            args = ""
+        else:
+            target_file = find_python_interpreter()
+            args = "-m app.main"
+
+        ico_file = str(icon_path) if icon_path.exists() else ""
+
+        ps_script = f"""
+        $WshShell = New-Object -ComObject WScript.Shell
+        $Shortcut = $WshShell.CreateShortcut('{str(shortcut_path)}')
+        $Shortcut.TargetPath = '{target_file}'
+        $Shortcut.Arguments = '{args}'
+        $Shortcut.WorkingDirectory = '{str(app_dir)}'
+        if ('{ico_file}' -ne '') {{
+            $Shortcut.IconLocation = '{ico_file},0'
+        }}
+        $Shortcut.Description = 'SciDoc OCR Studio - AI Scientific Document OCR & Publishing'
+        $Shortcut.Save()
+        """
+        if res.returncode == 0:
+            return True, str(shortcut_path)
+        else:
+            return False, res.stderr.strip()
+    except Exception as e:
+        return False, str(e)
 
 def main():
     root = tk.Tk()

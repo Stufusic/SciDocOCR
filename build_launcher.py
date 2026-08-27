@@ -12,17 +12,26 @@ def build():
     print("  Building SciDocOCR-Launcher.exe (PyInstaller)")
     print("==================================================")
 
+    excludes = [
+        "torch", "torchvision", "torchaudio", "scipy", "numba",
+        "llvmlite", "mkl", "sympy", "fitz", "PySide6", "PIL.ImageQt"
+    ]
+
     cmd = [
         sys.executable,
         "-m", "PyInstaller",
+        "--clean",
         "--noconfirm",
-        "--onedir",
+        "--onefile",
         "--windowed",
         "--icon", str(root / "assets" / "app_icon.ico"),
         "--add-data", f"{root / 'assets'};assets",
         "--name", "SciDocOCR-Launcher",
-        str(launcher_script)
     ]
+    for exc in excludes:
+        cmd.extend(["--exclude-module", exc])
+
+    cmd.append(str(launcher_script))
 
     print(f"Running: {' '.join(cmd)}")
     res = subprocess.run(cmd, cwd=str(root))

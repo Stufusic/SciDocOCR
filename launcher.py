@@ -11,7 +11,13 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 APP_TITLE = "SciDoc OCR - Smart Launcher & Installer"
-APP_DIR = Path(__file__).resolve().parent
+
+if getattr(sys, "frozen", False):
+    BUNDLE_DIR = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+    APP_DIR = Path.cwd()
+else:
+    BUNDLE_DIR = Path(__file__).resolve().parent
+    APP_DIR = BUNDLE_DIR
 
 REQUIRED_PACKAGES = [
     "PySide6>=6.6.0",
@@ -31,8 +37,14 @@ class SciDocLauncherGUI:
         self.root.minsize(560, 400)
         self.root.configure(bg="#0f172a")
 
-        ico_path = APP_DIR / "assets" / "app_icon.ico"
-        png_path = APP_DIR / "assets" / "app_icon.png"
+        ico_path = BUNDLE_DIR / "assets" / "app_icon.ico"
+        if not ico_path.exists():
+            ico_path = APP_DIR / "assets" / "app_icon.ico"
+
+        png_path = BUNDLE_DIR / "assets" / "app_icon.png"
+        if not png_path.exists():
+            png_path = APP_DIR / "assets" / "app_icon.png"
+
         if ico_path.exists():
             try:
                 self.root.iconbitmap(str(ico_path))

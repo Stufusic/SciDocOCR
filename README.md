@@ -27,10 +27,10 @@ Bạn có thể lựa chọn 1 trong 3 cách khởi chạy tùy theo nhu cầu s
 
 1. Vào mục [**Releases**](https://github.com/Stufusic/SciDocOCR/releases) của dự án và tải tệp **`SciDocOCR-Launcher.exe`** (dung lượng siêu nhẹ ~13 MB).
 2. Đặt file vào thư mục dự án và **Double-click mở `SciDocOCR-Launcher.exe`**.
-3. Cửa sổ Launcher thông minh sẽ hiện lên:
-   - Tự động quét kiểm tra môi trường máy tính.
-   - Bấm nút **"📦 Cài đặt / Cập nhật Thư viện"** để tự động tải các gói phụ thuộc qua công cụ `uv` siêu tốc (chỉ mất 5–10 giây).
-   - Bấm **"🚀 Khởi chạy SciDoc OCR"** để mở ứng dụng chính!
+3. Cửa sổ Launcher thông minh sẽ hiện lên với 2 tùy chọn cài đặt:
+   - **Máy không có GPU rời / Laptop văn phòng**: Bấm nút **`📦 Cài đặt CPU (Không cần GPU)`** (tải siêu tốc chỉ 5–10 giây, bộ thư viện cực nhẹ ~30MB).
+   - **Máy có GPU NVIDIA**: Bấm nút **`⚡ Cài đặt GPU (MinerU CUDA)`** để cài thêm động cơ Deep Learning.
+   - Bấm **"🚀 Khởi chạy SciDoc OCR"** (hệ thống tự động tạo Shortcut ngoài màn hình Desktop và mở ứng dụng)!
 
 ---
 
@@ -51,16 +51,38 @@ Bạn có thể lựa chọn 1 trong 3 cách khởi chạy tùy theo nhu cầu s
 git clone https://github.com/Stufusic/SciDocOCR.git
 cd SciDocOCR
 
-# 2. Cài đặt các thư viện phụ thuộc bằng uv (siêu tốc) hoặc pip
+# 2. Cài đặt bản nhẹ cho máy CPU (không cần GPU):
 pip install uv
 uv pip install -r requirements.txt
 
-# (Tùy chọn) Cài đặt MinerU Engine đầy đủ để chạy OCR cục bộ bằng GPU
+# (Tùy chọn) Cài đặt thêm MinerU Engine cho máy có card đồ họa NVIDIA GPU:
 uv pip install -U "mineru[all]"
 
 # 3. Khởi chạy ứng dụng Studio
 python -m app.main
 ```
+
+---
+
+## 💻 Dành Cho Máy Tính Không Có GPU NVIDIA (CPU-Only Mode)
+
+Nếu máy tính của bạn là **Laptop văn phòng, PC chỉ dùng CPU Intel / AMD hoặc card đồ họa onboard (iGPU)**, bạn **hoàn toàn yên tâm sử dụng 100% đầy đủ các tính năng** của SciDoc OCR Studio nhờ kiến trúc đám mây & hybrid thông minh:
+
+### 🌟 Các Tính Năng Hoạt Động Hoàn Hảo Trên Máy CPU:
+1. **📄 Bóc tách Bố cục & Công thức Toán học (Vector Heuristic OCR)**:
+   - Tự động trích xuất toàn bộ văn bản đa cột, bảng biểu, hình ảnh và công thức toán trực tiếp từ PDF số hóa bằng CPU chỉ mất vài giây mỗi trang.
+2. **🌐 Dịch thuật Bảo toàn Công thức Siêu tốc (Google Translate)**:
+   - Dịch thuật toàn bộ tài liệu sang Tiếng Việt không giới hạn số trang, không cần GPU, bảo vệ 100% công thức toán học.
+3. **🤖 Trợ lý AI Assistant Đám mây (Cloud AI)**:
+   - Kết nối Google Gemini, OpenAI GPT, Claude, hoặc OpenRouter. Toàn bộ tính toán phức tạp chạy trên siêu máy chủ đám mây, máy tính của bạn chỉ nhận kết quả nên chạy cực kỳ mượt mà, không tốn RAM/CPU.
+4. **📐 Xuất bản Markdown, Mã nguồn LaTeX & Biên dịch PDF**:
+   - Tự động sinh file `.md`, `.tex` và xuất file PDF chất lượng cao.
+
+### ⚙️ Thiết Lập Khuyến Nghị Cho Máy CPU:
+Trong menu **`⚙ Settings`**:
+- **`AI Engine Mode`**: Chọn **`Auto`** hoặc **`Online Only`**.
+- **`Translation Engine`**: Chọn **`Google Translate`**.
+- **`Active Provider`**: Chọn **`Google Gemini`** (tốc độ cao, hỗ trợ gói miễn phí) hoặc nhà cung cấp yêu thích của bạn.
 
 ---
 

@@ -126,20 +126,35 @@ class SciDocLauncherGUI:
         btn_bar = tk.Frame(self.root, bg="#1e293b", padx=16, pady=10)
         btn_bar.pack(fill="x", side="bottom")
 
-        self.btn_install = tk.Button(
+        self.btn_install_cpu = tk.Button(
             btn_bar,
-            text="📦 Cài đặt / Cập nhật Thư viện",
+            text="📦 Cài đặt CPU (Không cần GPU)",
             font=("Segoe UI", 9, "bold"),
             bg="#334155",
             fg="#f8fafc",
             activebackground="#475569",
             activeforeground="#ffffff",
             relief="flat",
-            padx=12,
+            padx=10,
             pady=6,
-            command=self._start_install_thread
+            command=lambda: self._start_install_thread(mode="cpu")
         )
-        self.btn_install.pack(side="left")
+        self.btn_install_cpu.pack(side="left", padx=(0, 6))
+
+        self.btn_install_gpu = tk.Button(
+            btn_bar,
+            text="⚡ Cài đặt GPU (MinerU CUDA)",
+            font=("Segoe UI", 9, "bold"),
+            bg="#0f766e",
+            fg="#f0fdfa",
+            activebackground="#115e59",
+            activeforeground="#ffffff",
+            relief="flat",
+            padx=10,
+            pady=6,
+            command=lambda: self._start_install_thread(mode="gpu")
+        )
+        self.btn_install_gpu.pack(side="left")
 
         self.btn_launch = tk.Button(
             btn_bar,
@@ -196,18 +211,24 @@ class SciDocLauncherGUI:
         else:
             self.lbl_status.config(text="⚠️ Phát hiện thiếu thư viện. Vui lòng bấm Cài đặt bên dưới.", fg="#facc15")
 
-    def _start_install_thread(self):
-        self.btn_install.config(state="disabled")
+    def _start_install_thread(self, mode: str = "cpu"):
+        self.btn_install_cpu.config(state="disabled")
+        self.btn_install_gpu.config(state="disabled")
         self.btn_launch.config(state="disabled")
         self.progress.start(10)
-        self.lbl_status.config(text="Đang tự động tải và cài đặt các thư viện cần thiết...", fg="#38bdf8")
+        
+        mode_label = "Bản Nhẹ / CPU (Không cần GPU)" if mode == "cpu" else "Bản Đầy Đủ / GPU (MinerU CUDA)"
+        self.lbl_status.config(text=f"Đang tự động cài đặt {mode_label}...", fg="#38bdf8")
 
-        thread = threading.Thread(target=self._run_installer, daemon=True)
+        thread = threading.Thread(target=self._run_installer, args=(mode,), daemon=True)
         thread.start()
 
-    def _run_installer(self):
+    def _run_installer(self, mode: str = "cpu"):
         self._log("\n" + "=" * 50)
-        self._log("BẮT ĐẦU CÀI ĐẶT THƯ VIỆN BẰNG UV / PIP...")
+        if mode == "cpu":
+            self._log("BẮT ĐẦU CÀI ĐẶT BẢN NHẸ / CPU (KHÔNG CẦN GPU)...")
+        else:
+            self._log("BẮT ĐẦU CÀI ĐẶT BẢN GPU FULL (MINERU + CUDA)...")
         self._log("=" * 50)
 
         # 1. Try uv first, fallback to pip
@@ -226,6 +247,9 @@ class SciDocLauncherGUI:
             cmd.extend(["-r", str(req_file)])
         else:
             cmd.extend(REQUIRED_PACKAGES)
+
+        if mode == "gpu":
+            cmd.append("mineru[all]")
 
         self._log("Đang thực thi: " + " ".join(cmd))
 
@@ -259,14 +283,16 @@ class SciDocLauncherGUI:
 
     def _on_install_success(self):
         self.progress.stop()
-        self.btn_install.config(state="normal")
+        self.btn_install_cpu.config(state="normal")
+        self.btn_install_gpu.config(state="normal")
         self.btn_launch.config(state="normal")
         self.lbl_status.config(text="✓ Cài đặt thành công! Hệ thống sẵn sàng khởi chạy.", fg="#4ade80")
-        messagebox.showinfo("Thành công", "Đã cài đặt đầy đủ các gói phụ thuộc!\nBấm 'Khởi chạy SciDoc OCR' để mở ứng dụng.")
+        messagebox.showinfo("Thành công", "Đã cài đặt hoàn tất các gói phụ thuộc!\nBấm 'Khởi chạy SciDoc OCR' để mở ứng dụng.")
 
     def _on_install_failed(self):
         self.progress.stop()
-        self.btn_install.config(state="normal")
+        self.btn_install_cpu.config(state="normal")
+        self.btn_install_gpu.config(state="normal")
         self.btn_launch.config(state="normal")
         self.lbl_status.config(text="✗ Cài đặt chưa hoàn tất. Vui lòng kiểm tra log bên dưới.", fg="#ef4444")
 

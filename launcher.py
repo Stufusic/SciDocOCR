@@ -33,8 +33,8 @@ class SciDocLauncherGUI:
     def __init__(self, root):
         self.root = root
         self.root.title(APP_TITLE)
-        self.root.geometry("640x480")
-        self.root.minsize(560, 400)
+        self.root.geometry("720x540")
+        self.root.minsize(640, 460)
         self.root.configure(bg="#0f172a")
 
         ico_path = BUNDLE_DIR / "assets" / "app_icon.ico"
@@ -61,9 +61,9 @@ class SciDocLauncherGUI:
         self._check_initial_status()
 
     def _init_ui(self):
-        # Header Frame
+        # 1. Header Frame (Top)
         header = tk.Frame(self.root, bg="#1e293b", padx=16, pady=12)
-        header.pack(fill="x")
+        header.pack(fill="x", side="top")
 
         title_lbl = tk.Label(
             header,
@@ -83,7 +83,59 @@ class SciDocLauncherGUI:
         )
         sub_lbl.pack(anchor="w", pady=(2, 0))
 
-        # Main Content Frame
+        # 2. Bottom Buttons Bar (Must pack BEFORE center expand frame so it never gets clipped)
+        btn_bar = tk.Frame(self.root, bg="#1e293b", padx=16, pady=12)
+        btn_bar.pack(fill="x", side="bottom")
+
+        self.btn_install_cpu = tk.Button(
+            btn_bar,
+            text="📦 Cài đặt CPU (Không cần GPU)",
+            font=("Segoe UI", 10, "bold"),
+            bg="#334155",
+            fg="#f8fafc",
+            activebackground="#475569",
+            activeforeground="#ffffff",
+            relief="flat",
+            padx=12,
+            pady=7,
+            cursor="hand2",
+            command=lambda: self._start_install_thread(mode="cpu")
+        )
+        self.btn_install_cpu.pack(side="left", padx=(0, 8))
+
+        self.btn_install_gpu = tk.Button(
+            btn_bar,
+            text="⚡ Cài đặt GPU (MinerU CUDA)",
+            font=("Segoe UI", 10, "bold"),
+            bg="#0f766e",
+            fg="#f0fdfa",
+            activebackground="#115e59",
+            activeforeground="#ffffff",
+            relief="flat",
+            padx=12,
+            pady=7,
+            cursor="hand2",
+            command=lambda: self._start_install_thread(mode="gpu")
+        )
+        self.btn_install_gpu.pack(side="left")
+
+        self.btn_launch = tk.Button(
+            btn_bar,
+            text="🚀 Khởi chạy SciDoc OCR",
+            font=("Segoe UI", 10, "bold"),
+            bg="#2563eb",
+            fg="#ffffff",
+            activebackground="#1d4ed8",
+            activeforeground="#ffffff",
+            relief="flat",
+            padx=18,
+            pady=7,
+            cursor="hand2",
+            command=self._launch_app
+        )
+        self.btn_launch.pack(side="right")
+
+        # 3. Main Center Content Frame
         main_frame = tk.Frame(self.root, bg="#0f172a", padx=16, pady=12)
         main_frame.pack(fill="both", expand=True)
 
@@ -120,56 +172,7 @@ class SciDocLauncherGUI:
             bd=1,
             wrap="word"
         )
-        self.txt_log.pack(fill="both", expand=True, pady=(4, 10))
-
-        # Bottom Buttons Bar
-        btn_bar = tk.Frame(self.root, bg="#1e293b", padx=16, pady=10)
-        btn_bar.pack(fill="x", side="bottom")
-
-        self.btn_install_cpu = tk.Button(
-            btn_bar,
-            text="📦 Cài đặt CPU (Không cần GPU)",
-            font=("Segoe UI", 9, "bold"),
-            bg="#334155",
-            fg="#f8fafc",
-            activebackground="#475569",
-            activeforeground="#ffffff",
-            relief="flat",
-            padx=10,
-            pady=6,
-            command=lambda: self._start_install_thread(mode="cpu")
-        )
-        self.btn_install_cpu.pack(side="left", padx=(0, 6))
-
-        self.btn_install_gpu = tk.Button(
-            btn_bar,
-            text="⚡ Cài đặt GPU (MinerU CUDA)",
-            font=("Segoe UI", 9, "bold"),
-            bg="#0f766e",
-            fg="#f0fdfa",
-            activebackground="#115e59",
-            activeforeground="#ffffff",
-            relief="flat",
-            padx=10,
-            pady=6,
-            command=lambda: self._start_install_thread(mode="gpu")
-        )
-        self.btn_install_gpu.pack(side="left")
-
-        self.btn_launch = tk.Button(
-            btn_bar,
-            text="🚀 Khởi chạy SciDoc OCR",
-            font=("Segoe UI", 10, "bold"),
-            bg="#2563eb",
-            fg="#ffffff",
-            activebackground="#1d4ed8",
-            activeforeground="#ffffff",
-            relief="flat",
-            padx=16,
-            pady=6,
-            command=self._launch_app
-        )
-        self.btn_launch.pack(side="right")
+        self.txt_log.pack(fill="both", expand=True, pady=(4, 0))
 
     def _log(self, message: str):
         self.txt_log.insert("end", message + "\n")

@@ -241,7 +241,7 @@ python build_exe.py
 Nếu bạn muốn trải nghiệm phiên bản nâng cấp thế hệ mới với giao diện đồ họa hiện đại, công nghệ AI Vision đa phương thức và bộ cài đặt Windows Setup Wizard chạy thuần máy tính (Zero-Port Native App):
 
 * ⬇️ **Tải Bản Cài Đặt Setup Windows (.exe):** [Release SciDoc OCR PRO Studio (exe) v1.0.1 - Windows Release](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.1)
-* 📦 **Kho Mã Nguồn Bản PRO:** [https://github.com/Stufusic/SciDocOCR_Pro](https://github.com/Stufusic/SciDocOCR_Pro)
+* 📦 **Kho Mã Nguồn Bản PRO:** (Đóng)
 
 ### 💎 Các Tính Năng Nổi Bật Bản PRO:
 1. **🖥️ Kiến Trúc Native Desktop App (Zero-Port JS Bridge IPC):** Chạy trực tiếp 100% trong bộ nhớ máy tính qua JS Bridge IPC (`window.pywebview.api`), không mở cổng Port, không dùng máy chủ web, triệt tiêu 100% lỗi mạng và firewall.

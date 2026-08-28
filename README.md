@@ -9,22 +9,12 @@
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![PySide6](https://img.shields.io/badge/GUI-PySide6%20(Qt6)-green?logo=qt&logoColor=white)](https://pypi.org/project/PySide6/)
 [![CUDA](https://img.shields.io/badge/GPU%20Acceleration-NVIDIA%20CUDA%2012.x-76B900?logo=nvidia&logoColor=white)](https://developer.nvidia.com/cuda-toolkit)
-[![SciDocOCR Pro](https://img.shields.io/badge/Next--Gen-SciDocOCR%20Pro%20v1.0.1-blueviolet?logo=rocket&logoColor=white)](https://github.com/Stufusic/SciDocOCR_Pro)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Tests](https://img.shields.io/badge/Unit%20Tests-36%2F36%20Passed-brightgreen)](tests/)
 
-[Cài Đặt Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh) • [Bản Nâng Cấp Pro](#-thử-nghiệm-phiên-bản-scidoc-ocr-pro-studio) • [Hướng Dẫn Lấy API Key](#-hướng-dẫn-lấy--cấu-hình-api-key-cho-các-nhà-cung-cấp-llm-ai) • [Dành Cho Máy CPU](#-dành-cho-máy-tính-không-có-gpu-nvidia-cpu-only-mode) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước-user-guide) • [Cấu Hình & Chunking](#-lưu-ý-về-phân-bổ-trang--chunk-page--chunk) • [Kiến Trúc Pipeline](#-kiến-trúc-hệ-thống--pipeline-xử-lý)
+[Cài Đặt Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh) • [Dành Cho Máy CPU](#-dành-cho-máy-tính-không-có-gpu-nvidia-cpu-only-mode) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước-user-guide) • [Cấu Hình & Chunking](#-lưu-ý-về-phân-bổ-trang--chunk-page--chunk) • [Kiến Trúc Pipeline](#-kiến-trúc-hệ-thống--pipeline-xử-lý) • [Thử Nghiệm Bản PRO](#-thử-nghiệm-phiên-bản-nâng-cấp-scidoc-ocr-pro-studio)
 
 </div>
-
----
-
-> [!TIP]
-> ### 🚀 Trải Nghiệm Phiên Bản Nâng Cấp: [SciDoc OCR PRO Studio (v1.0.1)](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.1)
-> Phiên bản **SciDoc OCR PRO v1.0.1** với kiến trúc **Native Desktop App (Zero-Port JS Bridge IPC)**, công nghệ **Multimodal Vision LLM**, công cụ **Khoanh Vùng & Tự Chỉnh Bounding Box Trực Tiếp Trên PDF**, và **Bộ Cài Đặt Windows Setup Wizard 1 Cú Nhấp Chuột** (`.exe`).
-> 
-> ⬇️ **Tải Bản Cài Đặt PRO Mới Nhất:** [Release SciDoc OCR PRO Studio (exe) v1.0.1 - Windows Release](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.1)  
-> 📦 **Mã Nguồn Bản PRO:** [https://github.com/Stufusic/SciDocOCR_Pro](https://github.com/Stufusic/SciDocOCR_Pro)
 
 ---
 
@@ -64,82 +54,6 @@ uv pip install -U "mineru[all]"
 # 3. Khởi chạy ứng dụng Studio
 python -m app.main
 ```
-
----
-
-## 🌟 Thử Nghiệm Phiên Bản: SciDoc OCR PRO Studio (v1.0.1)
-
-Nếu bạn muốn trải nghiệm phiên bản thế hệ mới với giao diện hiện đại, tích hợp công nghệ AI Vision đa phương thức và đóng gói dạng bộ cài đặt Windows Setup Wizard chạy thuần máy tính:
-
-* ⬇️ **Tải Bản Cài Đặt Windows Đóng Gói Sẵn:** [Release SciDoc OCR PRO Studio (exe) v1.0.1 - Windows Release](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.1)
-* 📦 **Kho Mã Nguồn Bản PRO:** [https://github.com/Stufusic/SciDocOCR_Pro](https://github.com/Stufusic/SciDocOCR_Pro)
-
-### 💎 Các Cơ Chế & Tính Năng Nổi Bật Bản PRO:
-1. **🖥️ Kiến Trúc Native Desktop App (Zero-Port JS Bridge IPC):**
-   - Chạy trực tiếp 100% trong bộ nhớ máy tính qua cơ chế JS Bridge IPC (`window.pywebview.api`).
-   - Hoàn toàn **không dùng máy chủ web**, **không mở cổng Port**, triệt tiêu 100% rủi ro bị chặn bởi Windows Firewall, Proxy hoặc lỗi `ERR_CONNECTION_REFUSED`.
-2. **📦 Trình Cài Đặt 1-Click Setup Wizard (`SciDocOCR_Pro_Setup_v1.0.1.exe`):**
-   - Đóng gói trọn gói chuẩn Windows Installer. Người dùng chỉ cần mở lên, bấm Next $\to$ Finish là app tự động chạy mượt mà ngay trên máy.
-3. **✂️ Phân Tách 3 Trang Thông Minh & Tự Phục Hồi (Adaptive 3-Page Chunking & Checkpoints):**
-   - Tối ưu hóa bộ nhớ và giữ trọn ngữ cảnh xuyên suốt giữa các trang cho tài liệu khoa học đồ sộ.
-   - Tự động lưu Checkpoint độc lập từng khối; khi khởi động lại có thể khôi phục tiến trình ngay tức thì.
-4. **🎨 Khoanh Vùng & Tự Chỉnh Bounding Box Trực Tiếp Trên PDF:**
-   - Xem và điều chỉnh kích thước, vị trí các khung nhận diện trực quan bằng chuột trực tiếp trên trang PDF gốc.
-5. **➕ Thêm Khối Mới Tùy Chỉnh (`+ Thêm Khối`):**
-   - Người dùng có thể tự vẽ khoanh vùng một khu vực bất kỳ trên bản scan PDF và ra lệnh cho AI Vision OCR bóc tách công thức LaTeX, bảng số liệu hoặc văn bản ngay lập tức.
-6. **🌐 Dịch Thuật Chuyên Ngành Song Ngữ (Dual-View Bilingual Translation):**
-   - Hỗ trợ xem đối sánh song ngữ trực quan (Văn bản gốc & Bản dịch Tiếng Việt), bảo vệ 100% công thức toán học và bảng biểu số liệu.
-7. **🤖 Tích Hợp Sẵn Đa Nhà Cung Cấp LLM AI & Live Model Discovery:**
-   - Kết nối trực tiếp Google Gemini, OpenAI, Anthropic Claude, OpenRouter và Local AI. Tự động lấy danh sách Model mới nhất từ tài khoản bằng 1 click (**Fetch Models**).
-8. **📊 Bóc Tách Bảng Biểu & Xuất Bản Đa Định Dạng (Booktabs):**
-   - Tái tạo bảng số liệu theo chuẩn quốc tế IEEE/ACM sang cả Markdown và mã nguồn LaTeX chuẩn mực.
-
----
-
-## 🔑 Hướng Dẫn Lấy & Cấu Hình API Key Cho Các Nhà Cung Cấp LLM AI
-
-Ứng dụng hỗ trợ cấu hình API Key của tất cả các nhà cung cấp AI hàng đầu. Dưới đây là hướng dẫn chi tiết từng bước:
-
-### 1️⃣ Google Gemini API Key (Miễn Phí 100% & Khuyên Dùng ⭐)
-1. Truy cập vào trang quản lý: [Google AI Studio (https://aistudio.google.com/)](https://aistudio.google.com/).
-2. Đăng nhập bằng tài khoản Google của bạn.
-3. Bấm vào nút **"Get API key"** (hoặc **"Create API key"**).
-4. Chọn dự án Google Cloud và bấm **"Create API key in existing/new project"**.
-5. Sao chép chuỗi mã khóa (bắt đầu bằng `AIzaSy...`).
-6. Trong ứng dụng SciDoc OCR, mở **`⚙ Settings`** ➔ Dán mã vào ô **Google API Key** ➔ Bấm **Fetch Models** và chọn `gemini-2.0-flash` hoặc `gemini-1.5-pro`.
-
----
-
-### 2️⃣ OpenRouter API Key (Truy Cập 200+ Mô Hình: DeepSeek-R1, Qwen, Claude, Llama)
-1. Truy cập: [OpenRouter Keys (https://openrouter.ai/keys)](https://openrouter.ai/keys).
-2. Đăng nhập hoặc tạo tài khoản OpenRouter mới.
-3. Bấm **"Create Key"**, đặt tên cho khóa (ví dụ: `SciDocOCR`) và bấm **Create**.
-4. Sao chép mã khóa (bắt đầu bằng `sk-or-v1-...`).
-5. Trong ứng dụng, mở **`⚙ Settings`** ➔ Chọn nhà cung cấp **OpenRouter** ➔ Dán mã vào ô **OpenRouter API Key** ➔ Bấm **Fetch Models** để chọn các model đỉnh cao như `deepseek/deepseek-r1`, `qwen/qwen-2.5-72b-instruct`.
-
----
-
-### 3️⃣ OpenAI API Key (GPT-4o, GPT-4o-mini, o1, o3-mini)
-1. Truy cập: [OpenAI Platform API Keys (https://platform.openai.com/api-keys)](https://platform.openai.com/api-keys).
-2. Đăng nhập tài khoản OpenAI.
-3. Bấm **"+ Create new secret key"**, đặt tên và sao chép mã khóa (bắt đầu bằng `sk-proj-...`).
-4. Trong ứng dụng, mở **`⚙ Settings`** ➔ Dán vào ô **OpenAI API Key** ➔ Bấm **Fetch Models** để chọn model `gpt-4o`.
-
----
-
-### 4️⃣ Anthropic Claude API Key (Claude 3.7 Sonnet, Claude 3.5 Sonnet)
-1. Truy cập: [Anthropic Console (https://console.anthropic.com/)](https://console.anthropic.com/).
-2. Đăng nhập tài khoản Anthropic ➔ Vào mục **API Keys**.
-3. Bấm **"Create Key"** ➔ Sao chép mã khóa (bắt đầu bằng `sk-ant-...`).
-4. Trong ứng dụng, mở **`⚙ Settings`** ➔ Dán vào ô **Anthropic API Key** ➔ Chọn `claude-3-7-sonnet-20250219`.
-
----
-
-### 5️⃣ Chạy AI Cục Bộ 100% Offline (Ollama / LM Studio — Không Cần API Key)
-Nếu bạn muốn bảo mật dữ liệu tuyệt đối và máy tính có cấu hình mạnh:
-* **Với Ollama:** Cài đặt Ollama, chạy lệnh `ollama run qwen2.5-coder` và điền Base URL vào ứng dụng: `http://127.0.0.1:11434/v1`.
-* **Với LM Studio:** Bật tính năng **Local Server** trong LM Studio và điền Base URL: `http://127.0.0.1:1234/v1`.
-* *Ô API Key có thể để trống hoặc điền bất kỳ chữ nào.*
 
 ---
 
@@ -319,6 +233,34 @@ python build_exe.py
 - **Python**: Python 3.11, 3.12 hoặc 3.13.
 - **Bộ nhớ RAM**: Tối thiểu 8 GB RAM (Khuyến nghị 16 GB).
 - **Card đồ họa (Tùy chọn)**: Hỗ trợ card NVIDIA (CUDA 12.x) để tăng tốc nhận diện công thức toán học.
+
+---
+
+## 🌟 Thử Nghiệm Phiên Bản Nâng Cấp: SciDoc OCR PRO Studio (v1.0.1)
+
+Nếu bạn muốn trải nghiệm phiên bản nâng cấp thế hệ mới với giao diện đồ họa hiện đại, công nghệ AI Vision đa phương thức và bộ cài đặt Windows Setup Wizard chạy thuần máy tính (Zero-Port Native App):
+
+* ⬇️ **Tải Bản Cài Đặt Setup Windows (.exe):** [Release SciDoc OCR PRO Studio (exe) v1.0.1 - Windows Release](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.1)
+* 📦 **Kho Mã Nguồn Bản PRO:** [https://github.com/Stufusic/SciDocOCR_Pro](https://github.com/Stufusic/SciDocOCR_Pro)
+
+### 💎 Các Tính Năng Nổi Bật Bản PRO:
+1. **🖥️ Kiến Trúc Native Desktop App (Zero-Port JS Bridge IPC):** Chạy trực tiếp 100% trong bộ nhớ máy tính qua JS Bridge IPC (`window.pywebview.api`), không mở cổng Port, không dùng máy chủ web, triệt tiêu 100% lỗi mạng và firewall.
+2. **📦 Trình Cài Đặt 1-Click Setup Wizard (`SciDocOCR_Pro_Setup_v1.0.1.exe`):** Tải về, bấm Next $\to$ Finish là app tự động chạy mượt mà ngay trên máy.
+3. **✂️ Phân Tách 3 Trang Thông Minh & Tự Phục Hồi (Adaptive 3-Page Chunking & Checkpoints):** Tối ưu hóa ngữ cảnh và bộ nhớ, tự lưu & khôi phục checkpoint từng khối.
+4. **🎨 Khoanh Vùng & Tự Chỉnh Bounding Box Trực Tiếp Trên PDF:** Kéo thả khung nhận diện trực quan trên bản PDF gốc.
+5. **➕ Thêm Khối Mới Tùy Chỉnh (`+ Thêm Khối`):** Khoanh vùng bất kỳ và gọi AI OCR trích xuất công thức LaTeX / bảng số liệu tức thì.
+6. **🌐 Dịch Thuật Chuyên Ngành Song Ngữ (Dual-View Bilingual Translation):** Đối sánh trực quan bản gốc & bản dịch Tiếng Việt, bảo toàn 100% công thức toán học.
+7. **🤖 Tích Hợp Đa Nhà Cung Cấp LLM AI & Live Model Discovery:** Kết nối Google Gemini, OpenAI, Claude, OpenRouter, Local AI với tính năng Fetch Models tự động.
+8. **📊 Bóc Tách Bảng Biểu Chuẩn Quốc Tế (Booktabs):** Tái tạo bảng số liệu sang cả Markdown và mã nguồn LaTeX chuẩn mực.
+
+---
+
+### 🔑 Hướng Dẫn Lấy & Cấu Hình API Key Cho Các LLM AI:
+* **Google Gemini API Key (Miễn phí 100% ⭐):** Truy cập [Google AI Studio (https://aistudio.google.com/)](https://aistudio.google.com/) ➔ Bấm **Get API key** ➔ Tạo key và dán vào ô **Google API Key** trong phần Cài đặt của ứng dụng.
+* **OpenRouter API Key (Truy cập 200+ Model: DeepSeek-R1, Qwen, Claude):** Truy cập [OpenRouter Keys (https://openrouter.ai/keys)](https://openrouter.ai/keys) ➔ Tạo key và dán vào ô **OpenRouter API Key** trong ứng dụng.
+* **OpenAI API Key (GPT-4o, o3-mini):** Truy cập [OpenAI Platform (https://platform.openai.com/api-keys)](https://platform.openai.com/api-keys) ➔ Tạo key và dán vào ô **OpenAI API Key**.
+* **Anthropic Claude API Key (Claude 3.7 Sonnet):** Truy cập [Anthropic Console (https://console.anthropic.com/)](https://console.anthropic.com/) ➔ Lấy key và dán vào ô **Anthropic API Key**.
+* **Local AI Offline (Ollama / LM Studio - Không cần Key):** Điền Base URL `http://127.0.0.1:11434/v1` (Ollama) hoặc `http://127.0.0.1:1234/v1` (LM Studio).
 
 ---
 

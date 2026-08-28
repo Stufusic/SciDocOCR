@@ -9,12 +9,22 @@
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![PySide6](https://img.shields.io/badge/GUI-PySide6%20(Qt6)-green?logo=qt&logoColor=white)](https://pypi.org/project/PySide6/)
 [![CUDA](https://img.shields.io/badge/GPU%20Acceleration-NVIDIA%20CUDA%2012.x-76B900?logo=nvidia&logoColor=white)](https://developer.nvidia.com/cuda-toolkit)
+[![SciDocOCR Pro](https://img.shields.io/badge/Next--Gen-SciDocOCR%20Pro%20v1.0.1-blueviolet?logo=rocket&logoColor=white)](https://github.com/Stufusic/SciDocOCR_Pro)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Tests](https://img.shields.io/badge/Unit%20Tests-36%2F36%20Passed-brightgreen)](tests/)
 
-[Cài Đặt Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh) • [Dành Cho Máy CPU](#-dành-cho-máy-tính-không-có-gpu-nvidia-cpu-only-mode) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước-user-guide) • [Cấu Hình & Chunking](#-lưu-ý-về-phân-bổ-trang--chunk-page--chunk) • [Kiến Trúc Pipeline](#-kiến-trúc-hệ-thống--pipeline-xử-lý)
+[Cài Đặt Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh) • [Bản Nâng Cấp Pro](#-giới-thiệu-phiên-bản-nâng-cấp-scidococr-pro) • [Dành Cho Máy CPU](#-dành-cho-máy-tính-không-có-gpu-nvidia-cpu-only-mode) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước-user-guide) • [Cấu Hình & Chunking](#-lưu-ý-về-phân-bổ-trang--chunk-page--chunk) • [Kiến Trúc Pipeline](#-kiến-trúc-hệ-thống--pipeline-xử-lý)
 
 </div>
+
+---
+
+> [!TIP]
+> ### 🚀 Trải Nghiệm Phiên Bản Nâng Cấp: [SciDoc OCR PRO Studio (v1.0.0)](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.0)
+> Phiên bản **SciDoc OCR PRO** với công nghệ **Multimodal Vision LLM**, công cụ **Khoanh Vùng & Tự Chỉnh Bounding Box Trực Tiếp Trên PDF**, và **Bộ Cài Đặt Windows Setup Wizard 1 Cú Nhấp Chuột** (`.exe`).
+> 
+> ⬇️ **Tải Bản Cài Đặt PRO Mới Nhất:** [Release SciDoc OCR PRO Studio v1.0.0 - Windows Release](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.0)  
+> 📦 **Mã Nguồn Bản PRO:** [https://github.com/Stufusic/SciDocOCR_Pro](https://github.com/Stufusic/SciDocOCR_Pro)
 
 ---
 
@@ -54,6 +64,23 @@ uv pip install -U "mineru[all]"
 # 3. Khởi chạy ứng dụng Studio
 python -m app.main
 ```
+
+---
+
+## 🌟 Thử Nghiệm Phiên Bản: SciDoc OCR PRO Studio
+
+Nếu bạn muốn trải nghiệm phiên bản thế hệ mới với giao diện Web hiện đại, tích hợp công nghệ AI Vision đa phương thức và đóng gói dạng bộ cài đặt Windows Setup Wizard:
+
+* ⬇️ **Tải Bản Cài Đặt Windows Đóng Gói Sẵn:** [Release SciDoc OCR PRO Studio v1.0.0 - Windows Release](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.0)
+* 📦 **Kho Mã Nguồn Bản PRO:** [https://github.com/Stufusic/SciDocOCR_Pro](https://github.com/Stufusic/SciDocOCR_Pro)
+
+### Các Điểm Nâng Cấp Nổi Bật Trong Bản PRO:
+1. **Trình Cài Đặt 1-Click Setup Wizard (`.exe`):** Người dùng chỉ cần mở lên, bấm Next $\to$ Finish là tự động chạy.
+2. **Khoanh Vùng & Tự Chỉnh BBox Tương Tác:** Vẽ và co giãn Bounding Box trực tiếp trên trang PDF.
+3. **Thêm Khối Mới Tùy Chỉnh (`+ Thêm Khối`):** Khoanh vùng trên trang PDF và gọi AI OCR trích xuất công thức LaTeX, bảng số liệu tức thì.
+4. **Phân Tích Bố Cục Ranh Giới Cứng (Hard Gutter Boundary):** Triệt tiêu hoàn toàn lỗi gom dính văn bản 2 cột.
+5. **Bóc Tách & Tái Tạo Bảng Biểu Booktabs:** Nhận diện và căn chỉnh bảng số liệu chuẩn xác sang Markdown & LaTeX.
+6. **Xóa Khối Tức Thì:** Nút ✕ tròn nhỏ tự động đồng bộ sang cả Markdown và mã nguồn LaTeX.
 
 ---
 

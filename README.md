@@ -236,22 +236,24 @@ python build_exe.py
 
 ---
 
-## 🌟 Thử Nghiệm Phiên Bản Nâng Cấp: SciDoc OCR PRO Studio (v1.0.1)
+## 🌟 Thử Nghiệm Phiên Bản Nâng Cấp: SciDoc OCR PRO Studio (v1.0.2)
 
 Nếu bạn muốn trải nghiệm phiên bản nâng cấp thế hệ mới với giao diện đồ họa hiện đại, công nghệ AI Vision đa phương thức và bộ cài đặt Windows Setup Wizard chạy thuần máy tính (Zero-Port Native App):
 
-* ⬇️ **Tải Bản Cài Đặt Setup Windows (.exe):** [Release SciDoc OCR PRO Studio (exe) v1.0.1 - Windows Release](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.1)
-* 📦 **Kho Mã Nguồn Bản PRO:** (Đóng)
+* ⬇️ **Tải Bản Cài Đặt Setup Windows (.exe):** [Release SciDoc OCR PRO Studio (exe) v1.0.2 - Windows Release](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.2)
+* 📦 **Kho Mã Nguồn Bản PRO:** [https://github.com/Stufusic/SciDocOCR_Pro](https://github.com/Stufusic/SciDocOCR_Pro)
 
-### 💎 Các Tính Năng Nổi Bật Bản PRO:
+### 💎 Các Tính Năng Nổi Bật Bản PRO (v1.0.2):
 1. **🖥️ Kiến Trúc Native Desktop App (Zero-Port JS Bridge IPC):** Chạy trực tiếp 100% trong bộ nhớ máy tính qua JS Bridge IPC (`window.pywebview.api`), không mở cổng Port, không dùng máy chủ web, triệt tiêu 100% lỗi mạng và firewall.
-2. **📦 Trình Cài Đặt 1-Click Setup Wizard (`SciDocOCR_Pro_Setup_v1.0.1.exe`):** Tải về, bấm Next $\to$ Finish là app tự động chạy mượt mà ngay trên máy.
-3. **✂️ Phân Tách 3 Trang Thông Minh & Tự Phục Hồi (Adaptive 3-Page Chunking & Checkpoints):** Tối ưu hóa ngữ cảnh và bộ nhớ, tự lưu & khôi phục checkpoint từng khối.
-4. **🎨 Khoanh Vùng & Tự Chỉnh Bounding Box Trực Tiếp Trên PDF:** Kéo thả khung nhận diện trực quan trên bản PDF gốc.
-5. **➕ Thêm Khối Mới Tùy Chỉnh (`+ Thêm Khối`):** Khoanh vùng bất kỳ và gọi AI OCR trích xuất công thức LaTeX / bảng số liệu tức thì.
-6. **🌐 Dịch Thuật Chuyên Ngành Song Ngữ (Dual-View Bilingual Translation):** Đối sánh trực quan bản gốc & bản dịch Tiếng Việt, bảo toàn 100% công thức toán học.
-7. **🤖 Tích Hợp Đa Nhà Cung Cấp LLM AI & Live Model Discovery:** Kết nối Google Gemini, OpenAI, Claude, OpenRouter, Local AI với tính năng Fetch Models tự động.
-8. **📊 Bóc Tách Bảng Biểu Chuẩn Quốc Tế (Booktabs):** Tái tạo bảng số liệu sang cả Markdown và mã nguồn LaTeX chuẩn mực.
+2. **📦 Trình Cài Đặt 1-Click Setup Wizard (`SciDocOCR_Pro_Setup_v1.0.2.exe`):** Tải về, bấm Next $\to$ Finish là app tự động chạy mượt mà ngay trên máy.
+3. **👁️ YOLOv8 DocLayNet & UniMERNet ONNX Engine:** Bóc tách bố cục chuẩn 11 phân lớp quốc tế và giải mã công thức toán học chuyên sâu siêu nét bằng trích xuất vector 450+ DPI.
+4. **⚡ Xử Lý Toàn Bộ Tự Động (Batch Process All Chunks):** Thanh tiến trình hiển thị realtime tiến độ, xử lý tuần tự (Streaming Queue) và tự động giải phóng bộ nhớ RAM (`del` & `gc.collect()`) sau mỗi chunk.
+5. **🎯 Tương Tác Hai Chiều PDF ↔ Markdown:** Click vào bất kỳ vùng Section/BBox trên PDF sẽ tự động cuộn mượt và phát sáng khối Markdown tương ứng.
+6. **⌨️ & 🖱️ Điều Hướng Trang Linh Hoạt:** Chuyển trang nhanh chóng bằng phím mũi tên (`←`/`→`), `PageUp`/`PageDown`, `Home`/`End` hoặc cuộn con lăn chuột.
+7. **✂️ Phân Tách 3 Trang Thông Minh & Tự Phục Hồi (Adaptive 3-Page Chunking & Checkpoints):** Tối ưu hóa ngữ cảnh và bộ nhớ, tự lưu & khôi phục checkpoint từng khối.
+8. **🌐 Dịch Thuật Chuyên Ngành Song Ngữ (Dual-View Bilingual Translation):** Đối sánh trực quan bản gốc & bản dịch Tiếng Việt, bảo toàn 100% công thức toán học.
+9. **🤖 Tích Hợp Đa Nhà Cung Cấp LLM AI & Live Model Discovery:** Kết nối Google Gemini, OpenAI, Claude, OpenRouter, Local AI với tính năng Fetch Models tự động.
+10. **📊 Bóc Tách Bảng Biểu Chuẩn Quốc Tế (Booktabs):** Tái tạo bảng số liệu sang cả Markdown và mã nguồn LaTeX chuẩn mực.
 
 ---
 

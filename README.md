@@ -13,7 +13,7 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Tests](https://img.shields.io/badge/Unit%20Tests-48%2F48%20Passed-brightgreen)](tests/)
 
-[⬇️ Tải Bản Release](#-tải-về-bản-phát-hành-mới-nhất-releases) • [Cài Đặt Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh) • [Chế Độ CPU Only](#-dành-cho-máy-tính-không-có-gpu-nvidia-cpu-only-mode) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước-user-guide) • [Kiến Trúc Pipeline](#-kiến-trúc-pipeline-v101--xử-lý-tự-động-hàng-loạt) • [Thử Nghiệm Bản PRO](#-thử-nghiệm-phiên-bản-nâng-cấp-scidoc-ocr-pro-studio-v102)
+[⬇️ Tải Bản Release](#-tải-về-bản-phát-hành-mới-nhất-releases) • [Cài Đặt Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh) • [Chế Độ CPU Only](#-dành-cho-máy-tính-không-có-gpu-nvidia-cpu-only-mode) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-chi-tiết-user-guide) • [Kiến Trúc Pipeline](#-kiến-trúc-pipeline-v101--xử-lý-tự-động-hàng-loạt) • [Thử Nghiệm Bản PRO](#-thử-nghiệm-phiên-bản-nâng-cấp-scidoc-ocr-pro-studio-v102)
 
 </div>
 
@@ -21,7 +21,7 @@
 
 ## 🚀 Điểm Mới Trong Phiên Bản v1.0.1
 
-* ⚡ **Quy Trình Dự Án & Xử Lý Tự Động Hàng Loạt ("Process All")**: Nút **⚡ Process All** chỉ hiện khi người dùng mở Thư mục Dự Án (`Open Project`). Hệ thống tự động quét toàn bộ tệp PDF, cho phép chọn vị trí xuất, sau đó tự động nạp tuần tự từng tài liệu từ trên xuống, bóc tách OCR và xuất trọn bộ vào thư mục riêng mang tên tài liệu đó rồi tự động nạp tài liệu tiếp theo.
+* ⚡ **Quy Trình Dự Án & Xử Lý Tự Động Hàng Loạt ("Process All")**: Nút **⚡ Process All** xuất hiện theo ngữ cảnh khi mở Thư mục Dự Án (`Open Project`). Hệ thống tự động quét toàn bộ tệp PDF, cho phép chọn vị trí xuất, sau đó tự động nạp tuần tự từng tài liệu từ trên xuống, bóc tách OCR và xuất trọn bộ vào thư mục riêng mang tên tài liệu đó rồi tự động nạp tài liệu tiếp theo.
 * 📦 **Module Tiện Ích Dùng Chung Chuẩn Hóa (`app/utils/common.py`)**: Tối ưu hóa toàn bộ codebase, gom các hàm xử lý ảnh độ phân giải cao cho Vision AI/LM Studio (`optimize_image_for_ai`), mã hóa Base64 Data URI, dọn rác và bộ nhớ đệm (`purge_directory`, `sanitize_filename`), lọc triệt để suy nghĩ nội bộ (`strip_thought_content`), băm SHA-256 và logging.
 * 🔄 **Cơ Chế Dự Phòng & Tự Động Xoay Vòng Model AI (Dynamic Failover)**: Tự động phát hiện model AI gặp sự cố (timeout, rate-limit, lỗi mạng) để chuyển sang model dự phòng ngay lập tức và ghi nhớ model hoạt động tốt nhất.
 * 🌐 **Dịch Thuật Markdown Siêu Tốc 1500 Ký Tự**: Hỗ trợ chia nhỏ văn bản theo từng khối ~1500 ký tự và stream trực tiếp lên giao diện, hỗ trợ cả **Google Translate** miễn phí và **AI LLM** với danh sách ngôn ngữ hiển thị đầy đủ tên quốc gia.
@@ -102,49 +102,73 @@ Nếu máy tính của bạn là **Laptop văn phòng, PC chỉ dùng CPU Intel 
 
 ---
 
-## 📖 Hướng Dẫn Sử Dụng Từng Bước (User Guide)
+## 📖 Hướng Dẫn Sử Dụng Chi Tiết (User Guide)
 
 Giao diện Studio được thiết kế theo cấu trúc 3 khung nhìn trực quan (**Triple-Pane Workspace**): Cây thư mục dự án (bên trái), Trình xem tài liệu PDF (ở giữa) và Trình biên tập Markdown / LaTeX / Chat Assistant (bên phải).
 
 ```
-┌──────────────┬────────────────────────┬──────────────────────────────────────┐
-│  Dự Án (Tree)│   Trình Xem PDF Gốc    │  Markdown  │  LaTeX  │ 💬 AI Assistant│
-├──────────────┼────────────────────────┼──────────────────────────────────────┤
-│ 📚 Dự Án (N) │                        │                                      │
-│ 1. ⏳ Chờ doc1│  [Hiển thị trang PDF   │  [Văn bản bóc tách & công thức toán  │
-│ 2. ⚡ Chạy doc2│   kèm khung nhận diện] │   hiển thị trực tiếp theo thời gian  │
-│ 3. ✓ Xong doc3│                        │   thực kèm hình ảnh và bảng biểu]    │
-└──────────────┴────────────────────────┴──────────────────────────────────────┘
+┌─────────────────────────┬─────────────────────────┬──────────────────────────────────────────┐
+│  📂 Thanh Quản Lý Dự Án │  📄 Trình Xem PDF Gốc   │  📝 Markdown  │  📐 LaTeX  │  💬 AI Chat  │
+├─────────────────────────┼─────────────────────────┼──────────────────────────────────────────┤
+│ 📚 Danh Sách Tài Liệu   │                         │                                          │
+│   1. ⚡ [Chạy] doc1.pdf │ [Trang PDF đang xem     │ [Nội dung Markdown & công thức toán học  │
+│   2. ⏳ [Chờ]  doc2.pdf │  kèm khung nhận diện    │  hiển thị trực tiếp theo thời gian thực  │
+│ 📄 Các Trang:           │  BBox màu sắc trực quan]│  kèm đầy đủ hình ảnh trích xuất]         │
+│   Trang 1 [✓] (98%)     │                         │                                          │
+└─────────────────────────┴─────────────────────────┴──────────────────────────────────────────┘
 ```
 
-### Bước 1: Mở File PDF Đơn Lẻ Hoặc Thư Mục Dự Án
-- **Mở 1 file PDF**: Bấm **`📂 Open PDF`** ➔ Chọn tài liệu PDF cần xử lý.
-- **Mở cả Dự án (Chứa nhiều PDF)**: Bấm **`📁 Open Project`** ➔ Chọn thư mục chứa các tài liệu. Nút **`⚡ Process All (N)`** sẽ lập tức xuất hiện kèm danh sách hàng đợi các tệp.
+---
 
-### Bước 2: Bóc Tách Bố Cục & OCR Tự Động Hàng Loạt (`⚡ Process All`)
-- Bấm **`⚡ Process All`**:
-  1. Hộp thoại hiển thị xác nhận vị trí xuất kết quả (mặc định tại thư mục dự án hoặc người dùng tự chọn thư mục khác).
-  2. Hệ thống tự động nạp tài liệu 1 $\to$ Nhận diện bố cục YOLOv10 $\to$ Bóc tách công thức toán $\to$ Tự động xuất đầy đủ file vào thư mục `<Tên_Tài_Liệu>` $\to$ Tự động nạp tài liệu tiếp theo cho đến khi hoàn tất.
+### 🎯 1. Hai Chế Độ Xử Lý Tài Liệu
 
-### Bước 3: Dịch Thuật Trực Tiếp (`🌐 Translate`)
-- Bấm vào nút **`🌐 Translate`** trên thanh công cụ:
-  - Hệ thống tiến hành **dịch theo các khối 1500 ký tự** và stream hiển thị trực tiếp.
-  - Toàn bộ công thức toán học (`$$...$$`, `$x$`), code và trích dẫn được bảo vệ nguyên vẹn qua bộ đệm SHA-256.
+#### 🟢 Chế Độ 1: Xử Lý File PDF Đơn Lẻ (`Open PDF`)
+1. Bấm nút **`📂 Open PDF`** trên thanh công cụ và chọn tệp PDF cần xử lý.
+2. Hệ thống lập tức nạp trang 1 xem trước và **tự động bóc tách bố cục OCR**.
+3. *(Tính năng Hàng đợi)*: Nếu bạn bấm chọn thêm 1 file PDF khi tiến trình đang chạy, hệ thống sẽ tự động đưa file đó vào **Hàng đợi (Queue)** để tự động xử lý ngay sau khi file hiện tại hoàn tất.
 
-### Bước 4: Tương Tác Với Trợ Lý AI Hỏi Đáp (`💬 AI Assistant`)
-- Chuyển sang tab **`💬 AI Assistant`** ở khung bên phải:
-  1. Chọn **Nhà cung cấp (Provider)**: Google Gemini, LM Studio (Local), OpenAI, Anthropic Claude, OpenRouter, hoặc Custom API.
-  2. Hệ thống **tự động kết nối trực tiếp đến API để nạp toàn bộ danh sách mô hình mới nhất** vào thanh cuộn.
-  3. Bấm **`⚙ API/URL`** nếu bạn muốn xem hoặc dán nhanh API Key / Base URL trực tiếp trong khung chat.
+#### 🚀 Chế Độ 2: Xử Lý Dự Án Tự Động Hàng Loạt (`Open Project` & `⚡ Process All`)
+1. Bấm nút **`📁 Open Project`** trên thanh công cụ và chọn thư mục chứa các tài liệu PDF.
+2. Hệ thống quét toàn bộ các file `.pdf` và hiển thị danh sách hàng đợi ở khung bên trái: `📚 Danh Sách Tài Liệu Dự Án (N)`.
+3. Nút **`⚡ Process All (N)`** sẽ xuất hiện trên thanh công cụ.
+4. Bấm **`⚡ Process All`**:
+   - Hộp thoại xác nhận hiện ra cho phép bạn chọn/xác nhận thư mục xuất kết quả (mặc định tại thư mục dự án hoặc chọn thư mục tùy ý).
+   - Bấm **`🚀 Bắt Đầu Xử Lý Tất Cả`**.
+   - Ứng dụng tự động nạp tài liệu 1 $\rightarrow$ xử lý OCR $\rightarrow$ tự động xuất trọn bộ vào thư mục `<Tên_Tài_Liệu>/` $\rightarrow$ tự động chuyển tiếp tài liệu 2, 3... cho đến khi xong toàn bộ.
+   - Khi hoàn tất, bấm nút **`📂 Mở Thư Mục Dự Án`** để xem ngay kết quả.
 
-### Bước 5: Soát Lỗi Công Thức (`🔍 Review Mode`)
-- Nếu tài liệu có công thức chất lượng scan kém, nút **`🔍 Review (N)`** ở thanh trạng thái sẽ sáng lên.
-- Mở cửa sổ đối soát để so sánh ảnh gốc với mã LaTeX nhận diện được và tùy chỉnh nếu cần.
+---
 
-### Bước 6: Xuất Bản Đa Định Dạng (`📤 Export...`)
-- Bấm vào nút **`📤 Export...`** trên thanh công cụ:
-  - Chọn thư mục xuất tùy ý.
-  - Hệ thống gom toàn bộ file **Markdown (`.md`)**, **LaTeX Source (`.tex`)**, **Tài liệu PDF (`.pdf`)**, **Cấu trúc AST (`.json`)** và thư mục ảnh **`images/`** vào một thư mục riêng biệt.
+### 🌐 2. Dịch Thuật Bảo Toàn Công Thức Toán (`Translate`)
+1. Sau khi tài liệu đã được bóc tách, bấm nút **`🌐 Translate`** trên thanh công cụ.
+2. Hệ thống tự động chia nhỏ văn bản thành các khối ~1500 ký tự và **stream hiển thị trực tiếp** vào trình xem Markdown.
+3. **Bảo toàn tuyệt đối 100%** công thức toán học (`$$...$$`, `$x$`), bảng biểu, mã code và hình ảnh.
+4. Hỗ trợ tùy chọn giữa **Google Translate** (miễn phí, siêu tốc) hoặc **AI LLM Translation** (dịch chuyên sâu có chú giải toán học).
+
+---
+
+### 💬 3. Trò Chuyện & Hỏi Đáp Với Trợ Lý AI (`AI Assistant`)
+1. Chuyển sang tab **`💬 AI Assistant`** ở khung bên phải.
+2. Chọn nhà cung cấp: **Google Gemini**, **OpenAI**, **Anthropic Claude**, **OpenRouter**, **LM Studio (Local)** hoặc **Custom API**.
+3. Danh sách model mới nhất được **tự động nạp trực tiếp từ API**.
+4. Đặt câu hỏi về tài liệu: Tóm tắt bài báo, giải thích ý nghĩa công thức, hoặc trích xuất số liệu bảng biểu.
+
+---
+
+### 🔍 4. Soát Lỗi Công Thức Toán Học (`Review Mode`)
+* Khi tài liệu có công thức chất lượng scan kém (độ tin cậy $< 85\%$), nút **`🔍 Review (N)`** ở thanh trạng thái bên dưới sẽ sáng lên.
+* Bấm vào nút này để mở cửa sổ đối soát: Xem ảnh phóng to từ PDF gốc, đối chiếu mã LaTeX và chỉnh sửa nhanh.
+
+---
+
+### 📤 5. Xuất Bản Đa Định Dạng Trọn Gói (`Export...`)
+1. Bấm nút **`📤 Export...`** trên thanh công cụ.
+2. Lựa chọn các định dạng mong muốn:
+   - ✅ **Markdown (`.md`)**: Kèm trọn bộ thư mục ảnh `images/`.
+   - ✅ **LaTeX Source (`.tex`)**: Chuẩn hóa với đầy đủ gói toán học.
+   - ✅ **Compiled PDF (`.pdf`)**: Tài liệu PDF biên dịch chất lượng cao.
+   - ✅ **AST Structure (`_ast.json`)**: Cấu trúc cây dữ liệu bóc tách.
+3. Chọn vị trí lưu trữ và bấm **Xuất Bản** $\rightarrow$ Hệ thống tự động đóng gói toàn bộ vào thư mục mang tên tài liệu.
 
 ---
 

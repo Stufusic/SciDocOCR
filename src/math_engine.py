@@ -11,24 +11,21 @@ from app.utils.logging import get_logger
 
 logger = get_logger("MathEngine")
 
-# Check if Pix2Text is optionally installed
-try:
-    from pix2text import Pix2Text
-    _P2T_AVAILABLE = True
-    _p2t_instance = None
-except ImportError:
-    _P2T_AVAILABLE = False
-    _p2t_instance = None
+_p2t_instance = None
+_p2t_initialized = False
 
 def get_pix2text_instance():
-    global _p2t_instance
-    if _P2T_AVAILABLE and _p2t_instance is None:
+    global _p2t_instance, _p2t_initialized
+    if not _p2t_initialized:
+        _p2t_initialized = True
         try:
+            from pix2text import Pix2Text
             _p2t_instance = Pix2Text(analyzer_config=dict(model_name='mfd'))
+            logger.info("Pix2Text initialized successfully.")
         except Exception as e:
-            logger.warning(f"Could not initialize Pix2Text: {e}")
-            _p2t_instance = False
-    return _p2t_instance if _p2t_instance is not False else None
+            logger.info(f"Pix2Text not available or failed to initialize ({e}). Using VLM/OCR fallback.")
+            _p2t_instance = None
+    return _p2t_instance
 
 class MathEngine:
     """Extracts mathematical formulas from crops with Pix2Text and VLM fallback."""

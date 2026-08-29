@@ -62,6 +62,14 @@ class ProtectedBlockParser:
 
         masked = re.sub(r"\\(cite|ref|eqref|label)\{[^\}]+\}", mask_citations, masked)
 
+        # 6. Mask Markdown Images ![caption](path)
+        def mask_images(match):
+            token = f"__SCIDOC_IMAGE_{len(placeholders):03d}__"
+            placeholders[token] = match.group(0)
+            return token
+
+        masked = re.sub(r"!\[(.*?)\]\((.*?)\)", mask_images, masked)
+
         return (masked, placeholders)
 
     def unmask_protected_elements(self, text: str, placeholder_map: Dict[str, str]) -> str:
@@ -73,6 +81,6 @@ class ProtectedBlockParser:
                 result = result.replace(token, original)
             else:
                 # Regex fallback for altered casing or spacing from translators
-                pat = re.escape(token).replace(r"\_", r"[\_\s]*")
+                pat = re.escape(token).replace("_", r"[\_\s]*")
                 result = re.sub(pat, lambda m, orig=original: orig, result, flags=re.IGNORECASE)
         return result

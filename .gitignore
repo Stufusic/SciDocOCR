@@ -12,6 +12,13 @@ htmlcov/
 env/
 venv/
 mineru_env/
+cache/
+
+# Large Model Weights (automatically downloaded on demand)
+*.onnx
+*.pt
+*.bin
+assets/models/
 
 # App temporary files & User projects
 temp/

@@ -42,3 +42,23 @@ def test_two_column_ordering():
     # Left column should be read before right column
     assert ordered_texts[1:4] == ["Left 1", "Left 2", "Left 3"]
     assert ordered_texts[4:7] == ["Right 1", "Right 2", "Right 3"]
+
+def test_heading_level_classification():
+    from app.models.layout_detector import DocumentLayoutDetector
+    detector = DocumentLayoutDetector()
+
+    blocks = [
+        ParagraphBlock(text="1. Introduction", bbox=BoundingBox(0,0,100,20)),
+        ParagraphBlock(text="1 Introduction", bbox=BoundingBox(0,25,100,45)),
+        ParagraphBlock(text="1.2 Related Work", bbox=BoundingBox(0,50,100,70)),
+        ParagraphBlock(text="2.3.1 Attention Mechanism", bbox=BoundingBox(0,75,100,95)),
+        ParagraphBlock(text="This is a standard body text paragraph.", bbox=BoundingBox(0,100,100,120))
+    ]
+
+    routed = detector.classify_and_route_blocks(blocks)
+    assert len(routed) == 5
+    assert isinstance(routed[0], HeadingBlock) and routed[0].level == 1
+    assert isinstance(routed[1], HeadingBlock) and routed[1].level == 1
+    assert isinstance(routed[2], HeadingBlock) and routed[2].level == 2
+    assert isinstance(routed[3], HeadingBlock) and routed[3].level == 3
+    assert isinstance(routed[4], ParagraphBlock)

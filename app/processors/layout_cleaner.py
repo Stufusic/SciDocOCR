@@ -125,24 +125,25 @@ class LayoutCleaner:
             if not image_path or not Path(image_path).exists():
                 return None
 
-            img = Image.open(image_path)
-            img_w, img_h = img.size
-            scale_x = img_w / page_w_pt if page_w_pt > 0 else 1.0
-            scale_y = img_h / page_h_pt if page_h_pt > 0 else 1.0
+            with Image.open(image_path) as img:
+                img_w, img_h = img.size
+                scale_x = img_w / page_w_pt if page_w_pt > 0 else 1.0
+                scale_y = img_h / page_h_pt if page_h_pt > 0 else 1.0
 
-            # Add padding around the chart
-            pad_pt = 8.0
-            crop_box = (
-                max(0, int((bbox.x0 - pad_pt) * scale_x)),
-                max(0, int((bbox.y0 - pad_pt) * scale_y)),
-                min(img_w, int((bbox.x1 + pad_pt) * scale_x)),
-                min(img_h, int((bbox.y1 + pad_pt) * scale_y))
-            )
+                # Add padding around the chart
+                pad_pt = 8.0
+                crop_box = (
+                    max(0, int((bbox.x0 - pad_pt) * scale_x)),
+                    max(0, int((bbox.y0 - pad_pt) * scale_y)),
+                    min(img_w, int((bbox.x1 + pad_pt) * scale_x)),
+                    min(img_h, int((bbox.y1 + pad_pt) * scale_y))
+                )
 
-            if crop_box[2] <= crop_box[0] or crop_box[3] <= crop_box[1]:
-                return None
+                if crop_box[2] <= crop_box[0] or crop_box[3] <= crop_box[1]:
+                    return None
 
-            cropped = img.crop(crop_box)
+                cropped = img.crop(crop_box).copy()
+
             output_file.parent.mkdir(parents=True, exist_ok=True)
             cropped.save(str(output_file.resolve()), "PNG")
             return str(output_file.resolve())
@@ -215,10 +216,10 @@ class LayoutCleaner:
                 max_y = max(box.y1 for box in chart_boxes)
                 enclosing_bbox = BoundingBox(min_x, min_y, max_x, max_y)
 
-                fig_filename = out_dir / f"figure_{page_num}_full_chart.png"
-                crop_path = None
+                fig_name = f"figure_{page_num}_full_chart.png"
+                fig_filename = out_dir / fig_name
                 if preview_image_path:
-                    crop_path = self.crop_and_save_figure(
+                    self.crop_and_save_figure(
                         preview_image_path, enclosing_bbox, page_w_pt, page_h_pt, fig_filename
                     )
 
@@ -229,7 +230,7 @@ class LayoutCleaner:
                     source_page=page_num,
                     confidence=0.99,
                     caption=caption_text,
-                    image_path=crop_path or str(fig_filename),
+                    image_path=f"images/{fig_name}",
                     width_pt=enclosing_bbox.width,
                     height_pt=enclosing_bbox.height
                 )
@@ -268,10 +269,10 @@ class LayoutCleaner:
                 max_y = max(b.bbox.y1 for b in cluster)
                 enclosing_bbox = BoundingBox(min_x, min_y, max_x, max_y)
 
-                fig_filename = out_dir / f"figure_{page_num}_cluster_{c_idx+1}.png"
-                crop_path = None
+                fig_name = f"figure_{page_num}_cluster_{c_idx+1}.png"
+                fig_filename = out_dir / fig_name
                 if preview_image_path:
-                    crop_path = self.crop_and_save_figure(
+                    self.crop_and_save_figure(
                         preview_image_path, enclosing_bbox, page_w_pt, page_h_pt, fig_filename
                     )
 
@@ -281,7 +282,7 @@ class LayoutCleaner:
                     source_page=page_num,
                     confidence=0.99,
                     caption="",
-                    image_path=crop_path or str(fig_filename),
+                    image_path=f"images/{fig_name}",
                     width_pt=enclosing_bbox.width,
                     height_pt=enclosing_bbox.height
                 )

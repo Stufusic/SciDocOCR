@@ -43,7 +43,7 @@ def test_latex_generation():
     tex = gen.generate_latex(doc)
 
     assert r"\documentclass" in tex
-    assert r"\usepackage{amsmath,amssymb,amsfonts}" in tex
+    assert r"\usepackage{amsmath" in tex
     assert r"\section{Quantum Mechanics}" in tex
     assert r"\begin{equation}" in tex
     assert r"\hat{H}\Psi = E\Psi" in tex

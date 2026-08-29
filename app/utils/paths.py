@@ -1,26 +1,23 @@
-"""Path management utilities."""
+"""Path management utilities (re-exported from common)."""
 
-import os
-from pathlib import Path
+from app.utils.common import (
+    get_app_dir,
+    get_cache_dir,
+    get_logs_dir,
+    get_assets_dir,
+    get_projects_dir,
+    ensure_dir,
+    sanitize_filename,
+    purge_directory,
+)
 
-def get_app_dir() -> Path:
-    """Returns the base application directory."""
-    return Path(__file__).resolve().parent.parent.parent
-
-def get_cache_dir() -> Path:
-    """Returns the cache directory under user app data or local folder."""
-    cache = get_app_dir() / "cache"
-    cache.mkdir(parents=True, exist_ok=True)
-    return cache
-
-def get_logs_dir() -> Path:
-    """Returns logs directory."""
-    logs = get_app_dir() / "logs"
-    logs.mkdir(parents=True, exist_ok=True)
-    return logs
-
-def get_assets_dir() -> Path:
-    """Returns assets directory."""
-    assets = get_app_dir() / "assets"
-    assets.mkdir(parents=True, exist_ok=True)
-    return assets
+__all__ = [
+    "get_app_dir",
+    "get_cache_dir",
+    "get_logs_dir",
+    "get_assets_dir",
+    "get_projects_dir",
+    "ensure_dir",
+    "sanitize_filename",
+    "purge_directory",
+]

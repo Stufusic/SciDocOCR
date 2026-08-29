@@ -77,6 +77,37 @@ QPushButton#accentBtn:hover {
     background-color: #059669;
 }
 
+/* Segmented Pill Slider Switcher (Thanh trượt chuyển chế độ) */
+QFrame#segmentedSlider {
+    background-color: #0b1329;
+    border: 1px solid #334155;
+    border-radius: 9px;
+    padding: 2px;
+}
+
+QPushButton#segmentBtn {
+    background-color: transparent;
+    color: #94a3b8;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    min-height: 18px;
+}
+
+QPushButton#segmentBtn:hover {
+    color: #f8fafc;
+    background-color: #1e293b;
+}
+
+QPushButton#segmentBtn:checked {
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: bold;
+    border: 1px solid #3b82f6;
+}
+
 /* Line Edit & Text Edit */
 QLineEdit, QTextEdit, QPlainTextEdit {
     background-color: #1e293b;

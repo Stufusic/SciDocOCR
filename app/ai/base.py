@@ -35,3 +35,7 @@ class AIProvider(ABC):
     def document_to_markdown(self, page_content: str) -> str:
         """Reconstructs raw page content into clean, structured Markdown with LaTeX math and tables."""
         pass
+
+    def ocr_image_to_markdown(self, image_bytes: bytes, raw_text_hint: str = "") -> str:
+        """Transcribes high-resolution document image to Markdown with LaTeX math and tables using Vision AI."""
+        return self.document_to_markdown(raw_text_hint)

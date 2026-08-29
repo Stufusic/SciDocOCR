@@ -106,3 +106,7 @@ class AIRouter:
     def document_to_markdown(self, page_content: str) -> str:
         provider = self.get_active_provider()
         return provider.document_to_markdown(page_content)
+
+    def ocr_image_to_markdown(self, image_bytes: bytes, raw_text_hint: str = "") -> str:
+        provider = self.get_active_provider()
+        return provider.ocr_image_to_markdown(image_bytes=image_bytes, raw_text_hint=raw_text_hint)

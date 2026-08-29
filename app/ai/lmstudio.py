@@ -4,9 +4,9 @@ import re
 import httpx
 from typing import List, Optional
 from app.ai.base import AIProvider
-from app.ai.prompts import PROMPT_PROOFREAD_OCR, PROMPT_FORMULA_REPAIR, PROMPT_TRANSLATION
+from app.ai.prompts import PROMPT_PROOFREAD_OCR, PROMPT_FORMULA_REPAIR, PROMPT_TRANSLATION, PROMPT_DOCUMENT_TO_MARKDOWN, PROMPT_VISION_OCR_PAGE
 from app.core.exceptions import AIProviderError
-from app.utils.logging import get_logger
+from app.utils import get_logger, strip_thought_content, optimize_image_for_ai, image_bytes_to_base64
 
 logger = get_logger("LMStudioProvider")
 
@@ -55,7 +55,6 @@ class LMStudioProvider(AIProvider):
                 content = choices[0].get("message", {}).get("content", "").strip()
 
                 # Clean any lingering thinking blocks (<think>...</think>, thoughts, etc.)
-                from app.utils.thought_cleaner import strip_thought_content
                 return strip_thought_content(content)
         except Exception as e:
             logger.error(f"LM Studio completion error: {e}")
@@ -74,5 +73,45 @@ class LMStudioProvider(AIProvider):
         return self.complete(prompt=text, system_prompt=sys_prompt)
 
     def document_to_markdown(self, page_content: str) -> str:
-        from app.ai.prompts import PROMPT_DOCUMENT_TO_MARKDOWN
         return self.complete(prompt=page_content, system_prompt=PROMPT_DOCUMENT_TO_MARKDOWN, max_tokens=4096)
+
+    def ocr_image_to_markdown(self, image_bytes: bytes, raw_text_hint: str = "") -> str:
+        """Sends image to LM Studio vision model or falls back to text transcription."""
+        if not image_bytes:
+            return self.document_to_markdown(raw_text_hint)
+
+        optimized_bytes, mime_type = optimize_image_for_ai(image_bytes, max_dim=1800, quality=88)
+        base64_img = image_bytes_to_base64(optimized_bytes)
+
+        try:
+            payload = {
+                "model": self.model_name,
+                "messages": [
+                    {"role": "system", "content": PROMPT_VISION_OCR_PAGE},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Transcribe this scientific document page to Markdown with accurate LaTeX math and tables."},
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:{mime_type};base64,{base64_img}"}
+                            }
+                        ]
+                    }
+                ],
+                "temperature": 0.1,
+                "max_tokens": 4096,
+                "enable_thinking": False
+            }
+            with httpx.Client(timeout=self.timeout) as client:
+                resp = client.post(f"{self.base_url}/chat/completions", json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    choices = data.get("choices", [])
+                    if choices:
+                        raw_res = choices[0].get("message", {}).get("content", "").strip()
+                        return strip_thought_content(raw_res)
+        except Exception as e:
+            logger.warning(f"LM Studio Vision OCR failed: {e}")
+
+        return self.document_to_markdown(raw_text_hint)

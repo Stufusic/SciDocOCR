@@ -54,6 +54,22 @@ CRITICAL RULES:
    - Output ONLY the clean Markdown text. Do NOT wrap with markdown backtick blocks (```markdown ... ```) or add any conversational introduction or conclusion.
 """
 
+PROMPT_VISION_OCR_PAGE = """You are a state-of-the-art scientific document Vision OCR and transcription engine.
+Transcribe the provided high-resolution document image into clean, structured GitHub Flavored Markdown.
+
+CRITICAL RULES:
+1. Mathematical Formulas:
+   - Transcribe all display equations into clean $$ LaTeX $$ blocks.
+   - Transcribe all inline mathematical variables and symbols into $ LaTeX $ syntax.
+2. Tables & Charts:
+   - Reconstruct all tables into clean Markdown tables (| col1 | col2 | ... |).
+3. Headings & Reading Order:
+   - Maintain multi-column reading order correctly.
+   - Use # for main titles, ## for section headings, ### for sub-sections.
+4. Output:
+   - Output ONLY the clean Markdown text without conversational commentary or markdown backtick wrappers.
+"""
+
 PROMPT_AUDIT_ANNOTATE_TRANSLATE = """You are an elite scientific editor, mathematician, and LaTeX specialist.
 You will process the provided Markdown chunk from a scientific paper and perform 3 simultaneous tasks:
 

@@ -4,9 +4,11 @@ Checks environment, auto-installs dependencies via uv/pip, verifies models, and 
 
 import sys
 import os
+import shutil
 import subprocess
 import threading
 from pathlib import Path
+from typing import Tuple, List, Optional, Dict
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -117,7 +119,23 @@ class SciDocLauncherGUI:
             cursor="hand2",
             command=lambda: self._start_install_thread(mode="gpu")
         )
-        self.btn_install_gpu.pack(side="left")
+        self.btn_install_gpu.pack(side="left", padx=(0, 8))
+
+        self.btn_download_yolo = tk.Button(
+            btn_bar,
+            text="📥 Tải Model YOLOv10 (~60MB)",
+            font=("Segoe UI", 10, "bold"),
+            bg="#475569",
+            fg="#f8fafc",
+            activebackground="#64748b",
+            activeforeground="#ffffff",
+            relief="flat",
+            padx=12,
+            pady=7,
+            cursor="hand2",
+            command=self._start_download_yolo_thread
+        )
+        self.btn_download_yolo.pack(side="left")
 
         self.btn_launch = tk.Button(
             btn_bar,
@@ -209,10 +227,55 @@ class SciDocLauncherGUI:
         except ImportError:
             self._log("ℹ PyTorch chưa được nạp trong môi trường này (Chế độ nhẹ).")
 
+        # Check YOLOv10 ONNX Model
+        from app.utils.downloader import is_model_installed
+        if is_model_installed("yolov10_doclayout"):
+            self._log("✓ Đã phát hiện Model YOLOv10 DocLayout ONNX trong assets/models (Sẵn sàng CPU).")
+            self.btn_download_yolo.config(text="🔄 Tải lại YOLOv10", bg="#334155")
+        else:
+            self._log("ℹ Chưa phát hiện model YOLOv10 ONNX (Sẽ dùng thuật toán CV Heuristic nếu chưa tải).")
+
         if has_pyside6 and has_fitz:
             self.lbl_status.config(text="✓ Môi trường sẵn sàng! Bạn có thể bấm Khởi chạy ngay.", fg="#4ade80")
         else:
             self.lbl_status.config(text="⚠️ Phát hiện thiếu thư viện. Vui lòng bấm Cài đặt bên dưới.", fg="#facc15")
+
+    def _start_download_yolo_thread(self):
+        self.btn_download_yolo.config(state="disabled")
+        self.progress.start(10)
+        self.lbl_status.config(text="Đang kết nối máy chủ tải Model YOLOv10 DocLayout ONNX...", fg="#38bdf8")
+        self._log("\n" + "=" * 50)
+        self._log("BẮT ĐẦU TẢI MODEL YOLOV10 DOCLAYOUT ONNX (~60 MB)...")
+        self._log("=" * 50)
+
+        def _bg_download():
+            from app.utils.downloader import download_model_streaming
+
+            def _prog(downloaded, total, speed, status_str):
+                self.root.after(0, lambda: self.lbl_status.config(text=status_str))
+
+            ok, res_msg = download_model_streaming(
+                model_key="yolov10_doclayout",
+                progress_callback=_prog
+            )
+
+            def _done():
+                self.progress.stop()
+                self.btn_download_yolo.config(state="normal")
+                if ok:
+                    self._log(f"✓ Tải thành công Model YOLOv10 ONNX vào: {res_msg}")
+                    self.lbl_status.config(text="✓ Đã tải xong Model YOLOv10! Sẵn sàng khởi chạy.", fg="#4ade80")
+                    self.btn_download_yolo.config(text="🔄 Tải lại YOLOv10", bg="#334155")
+                    messagebox.showinfo("Tải Thành Công", "✓ Đã tải xong Model YOLOv10 DocLayout ONNX!\nỨng dụng sẽ sử dụng model này để nhận diện bố cục và công thức siêu tốc trên CPU.")
+                else:
+                    self._log(f"✗ Lỗi tải model: {res_msg}")
+                    self.lbl_status.config(text="✗ Lỗi tải model. Vui lòng thử lại.", fg="#f87171")
+                    messagebox.showwarning("Lỗi Tải Model", f"Không thể tải model:\n{res_msg}")
+
+            self.root.after(0, _done)
+
+        thread = threading.Thread(target=_bg_download, daemon=True)
+        thread.start()
 
     def _start_install_thread(self, mode: str = "cpu"):
         self.btn_install_cpu.config(state="disabled")
@@ -391,6 +454,14 @@ def create_desktop_shortcut(app_dir: Path, icon_path: Path) -> Tuple[bool, str]:
         $Shortcut.Description = 'SciDoc OCR Studio - AI Scientific Document OCR & Publishing'
         $Shortcut.Save()
         """
+        res = subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_script],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+            timeout=15
+        )
         if res.returncode == 0:
             return True, str(shortcut_path)
         else:

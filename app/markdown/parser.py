@@ -19,8 +19,14 @@ class MarkdownParser:
         """Parses a Markdown string representing a page into a list of BaseBlock instances."""
         blocks: List[BaseBlock] = []
 
+        if not markdown_text or not markdown_text.strip():
+            return blocks
+
+        # Normalize boundaries so leading/trailing math and code blocks are caught reliably
+        norm_text = f"\n{markdown_text.strip()}\n"
+
         # Split into blocks by double newlines or display math delimiters
-        raw_chunks = re.split(r"(\n\$\$[\s\S]*?\$\$\n|\n```[\s\S]*?```\n|\n\n+)", markdown_text)
+        raw_chunks = re.split(r"(\n\$\$[\s\S]*?\$\$\n|\n```[\s\S]*?```\n|\n\n+)", norm_text)
 
         order_idx = 0
         for chunk in raw_chunks:

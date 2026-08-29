@@ -37,10 +37,9 @@ def main():
     if icon_path.exists():
         app.setWindowIcon(QIcon(str(icon_path)))
 
-    # Set default app font AFTER QApplication to avoid point-size -1 warnings
-    default_font = QFont("Segoe UI", 10)
-    if default_font.pointSize() <= 0:
-        default_font.setPointSize(10)
+    # Set default app font AFTER QApplication
+    default_font = QFont("Segoe UI")
+    default_font.setPointSize(10)
     app.setFont(default_font)
 
     window = MainWindow()

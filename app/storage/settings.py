@@ -92,6 +92,7 @@ class AppSettings:
     lmstudio_model: str = "local-model"
 
     # MinerU Configuration
+    mineru_server_url: str = "http://127.0.0.1:8000"
     mineru_method: str = "auto"  # "auto", "ocr", "txt"
     mineru_cli_path: str = "magic-pdf"
 
@@ -118,7 +119,7 @@ class AppSettings:
     })
     provider_models: Dict[str, str] = field(default_factory=lambda: {
         "openai": "gpt-4o-mini",
-        "google": "gemini-2.0-flash",
+        "google": "gemini-3.5-flash",
         "anthropic": "claude-3-7-sonnet-20250219",
         "opencode": "deepseek/deepseek-chat",
         "custom": "gpt-4o-mini"
@@ -293,3 +294,7 @@ class SettingsManager:
                     os.environ["GEMINI_API_KEY"] = k
                 elif prov == "anthropic": os.environ["ANTHROPIC_API_KEY"] = k
                 elif prov == "opencode": os.environ["OPENROUTER_API_KEY"] = k
+
+    def get_settings(self) -> AppSettings:
+        """Returns the current active AppSettings instance."""
+        return self.settings

@@ -29,8 +29,17 @@ class SciDocProject:
 
     @classmethod
     def create_new(cls, project_dir: Path, source_pdf_path: str, project_name: str = "SciDoc Project") -> SciDocProject:
-        """Initializes a new project workspace directory."""
+        """Initializes a new project workspace directory with clean state."""
         project = cls(project_dir)
+        
+        # Clean previous generated files in images and output if directory existed
+        if project.images_dir.exists():
+            shutil.rmtree(project.images_dir, ignore_errors=True)
+        if project.output_dir.exists():
+            shutil.rmtree(project.output_dir, ignore_errors=True)
+        if project.source_dir.exists():
+            shutil.rmtree(project.source_dir, ignore_errors=True)
+
         project.project_dir.mkdir(parents=True, exist_ok=True)
         project.source_dir.mkdir(exist_ok=True)
         project.output_dir.mkdir(exist_ok=True)

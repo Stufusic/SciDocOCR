@@ -46,20 +46,21 @@ class LayoutParser:
             if not page_img_path.exists():
                 return False
 
-            img = Image.open(page_img_path)
-            img_w, img_h = img.size
-            scale_x = img_w / page_w_pt if page_w_pt > 0 else 1.0
-            scale_y = img_h / page_h_pt if page_h_pt > 0 else 1.0
+            with Image.open(page_img_path) as img:
+                img_w, img_h = img.size
+                scale_x = img_w / page_w_pt if page_w_pt > 0 else 1.0
+                scale_y = img_h / page_h_pt if page_h_pt > 0 else 1.0
 
-            x0 = max(0, int((bbox[0] - padding_pt) * scale_x))
-            y0 = max(0, int((bbox[1] - padding_pt) * scale_y))
-            x1 = min(img_w, int((bbox[2] + padding_pt) * scale_x))
-            y1 = min(img_h, int((bbox[3] + padding_pt) * scale_y))
+                x0 = max(0, int((bbox[0] - padding_pt) * scale_x))
+                y0 = max(0, int((bbox[1] - padding_pt) * scale_y))
+                x1 = min(img_w, int((bbox[2] + padding_pt) * scale_x))
+                y1 = min(img_h, int((bbox[3] + padding_pt) * scale_y))
 
-            if x1 <= x0 or y1 <= y0:
-                return False
+                if x1 <= x0 or y1 <= y0:
+                    return False
 
-            cropped = img.crop((x0, y0, x1, y1))
+                cropped = img.crop((x0, y0, x1, y1)).copy()
+
             out_crop_path.parent.mkdir(parents=True, exist_ok=True)
             cropped.save(str(out_crop_path), "PNG")
             return True
@@ -97,85 +98,88 @@ class LayoutParser:
             raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
         doc = fitz.open(str(pdf_file))
-        total_pages = len(doc)
-        logger.info(f"Parsing {pdf_file.name} ({total_pages} pages) at {self.dpi} DPI...")
+        try:
+            total_pages = len(doc)
+            logger.info(f"Parsing {pdf_file.name} ({total_pages} pages) at {self.dpi} DPI...")
 
-        skeleton_chunks: List[str] = []
-        crops_metadata: Dict[str, Dict[str, Any]] = {}
+            skeleton_chunks: List[str] = []
+            crops_metadata: Dict[str, Dict[str, Any]] = {}
 
-        for p_idx in range(total_pages):
-            page_num = p_idx + 1
-            page_img_file = PAGES_DIR / f"page_{page_num}.png"
-            page_w, page_h, img_w, img_h = self.render_pdf_page(doc, page_num, page_img_file)
+            for p_idx in range(total_pages):
+                page_num = p_idx + 1
+                page_img_file = PAGES_DIR / f"page_{page_num}.png"
+                page_w, page_h, img_w, img_h = self.render_pdf_page(doc, page_num, page_img_file)
 
-            page = doc.load_page(p_idx)
-            page_dict = page.get_text("blocks")
+                page = doc.load_page(p_idx)
+                page_dict = page.get_text("blocks")
 
-            for b_idx, block in enumerate(page_dict):
-                # block tuple: (x0, y0, x1, y1, text, block_no, block_type)
-                bbox = (block[0], block[1], block[2], block[3])
-                text = block[4].strip() if len(block) > 4 else ""
+                for b_idx, block in enumerate(page_dict):
+                    # block tuple: (x0, y0, x1, y1, text, block_no, block_type)
+                    bbox = (block[0], block[1], block[2], block[3])
+                    text = block[4].strip() if len(block) > 4 else ""
 
-                if not text:
-                    continue
+                    if not text:
+                        continue
 
-                # 1. Check if Figure / Chart
-                if self.is_chart_or_figure(text):
-                    placeholder = f"{{{{CHART_PAGE_{page_num}_ID_{b_idx}}}}}"
-                    crop_file = CROPS_CHARTS_DIR / f"chart_p{page_num}_b{b_idx}.png"
-                    self.crop_region(page_img_file, bbox, page_w, page_h, crop_file)
-                    crops_metadata[placeholder] = {
-                        "type": "chart",
-                        "page": page_num,
-                        "crop_path": str(crop_file),
-                        "text_hint": text,
-                        "bbox": bbox
-                    }
-                    skeleton_chunks.append(f"\n{placeholder}\n")
+                    # 1. Check if Figure / Chart
+                    if self.is_chart_or_figure(text):
+                        placeholder = f"{{{{CHART_PAGE_{page_num}_ID_{b_idx}}}}}"
+                        crop_file = CROPS_CHARTS_DIR / f"chart_p{page_num}_b{b_idx}.png"
+                        self.crop_region(page_img_file, bbox, page_w, page_h, crop_file)
+                        crops_metadata[placeholder] = {
+                            "type": "chart",
+                            "page": page_num,
+                            "crop_path": str(crop_file),
+                            "text_hint": text,
+                            "bbox": bbox
+                        }
+                        skeleton_chunks.append(f"\n{placeholder}\n")
 
-                # 2. Check if Table
-                elif self.is_table_block(text):
-                    placeholder = f"{{{{TABLE_PAGE_{page_num}_ID_{b_idx}}}}}"
-                    crop_file = CROPS_TABLES_DIR / f"table_p{page_num}_b{b_idx}.png"
-                    self.crop_region(page_img_file, bbox, page_w, page_h, crop_file)
-                    crops_metadata[placeholder] = {
-                        "type": "table",
-                        "page": page_num,
-                        "crop_path": str(crop_file),
-                        "text_hint": text,
-                        "bbox": bbox
-                    }
-                    skeleton_chunks.append(f"\n{placeholder}\n")
+                    # 2. Check if Table
+                    elif self.is_table_block(text):
+                        placeholder = f"{{{{TABLE_PAGE_{page_num}_ID_{b_idx}}}}}"
+                        crop_file = CROPS_TABLES_DIR / f"table_p{page_num}_b{b_idx}.png"
+                        self.crop_region(page_img_file, bbox, page_w, page_h, crop_file)
+                        crops_metadata[placeholder] = {
+                            "type": "table",
+                            "page": page_num,
+                            "crop_path": str(crop_file),
+                            "text_hint": text,
+                            "bbox": bbox
+                        }
+                        skeleton_chunks.append(f"\n{placeholder}\n")
 
-                # 3. Check if Math Block
-                elif self.is_math_block(text) and len(text.split()) < 25:
-                    placeholder = f"{{{{MATH_PAGE_{page_num}_ID_{b_idx}}}}}"
-                    crop_file = CROPS_MATH_DIR / f"math_p{page_num}_b{b_idx}.png"
-                    self.crop_region(page_img_file, bbox, page_w, page_h, crop_file)
-                    crops_metadata[placeholder] = {
-                        "type": "math",
-                        "page": page_num,
-                        "crop_path": str(crop_file),
-                        "text_hint": text,
-                        "bbox": bbox
-                    }
-                    skeleton_chunks.append(f"\n{placeholder}\n")
+                    # 3. Check if Math Block
+                    elif self.is_math_block(text) and len(text.split()) < 25:
+                        placeholder = f"{{{{MATH_PAGE_{page_num}_ID_{b_idx}}}}}"
+                        crop_file = CROPS_MATH_DIR / f"math_p{page_num}_b{b_idx}.png"
+                        self.crop_region(page_img_file, bbox, page_w, page_h, crop_file)
+                        crops_metadata[placeholder] = {
+                            "type": "math",
+                            "page": page_num,
+                            "crop_path": str(crop_file),
+                            "text_hint": text,
+                            "bbox": bbox
+                        }
+                        skeleton_chunks.append(f"\n{placeholder}\n")
 
-                # 4. Standard Text Block (Headings, Paragraphs)
-                else:
-                    if re.match(r"^(\d+(\.\d+)*|[A-Z]\.)\s+[A-Z]", text):
-                        skeleton_chunks.append(f"## {text}\n")
+                    # 4. Standard Text Block (Headings, Paragraphs)
                     else:
-                        skeleton_chunks.append(f"{text}\n\n")
+                        if re.match(r"^(\d+(\.\d+)*|[A-Z]\.)\s+[A-Z]", text):
+                            skeleton_chunks.append(f"## {text}\n")
+                        else:
+                            skeleton_chunks.append(f"{text}\n\n")
 
-        draft_skeleton = "".join(skeleton_chunks)
-        skeleton_file = OUTPUT_DIR / "draft_skeleton.md"
-        skeleton_file.write_text(draft_skeleton, encoding="utf-8")
-        logger.info(f"Draft skeleton generated: {skeleton_file} with {len(crops_metadata)} visual placeholders.")
+            draft_skeleton = "".join(skeleton_chunks)
+            skeleton_file = OUTPUT_DIR / "draft_skeleton.md"
+            skeleton_file.write_text(draft_skeleton, encoding="utf-8")
+            logger.info(f"Draft skeleton generated: {skeleton_file} with {len(crops_metadata)} visual placeholders.")
 
-        return {
-            "skeleton_path": str(skeleton_file),
-            "draft_skeleton": draft_skeleton,
-            "crops_metadata": crops_metadata,
-            "total_pages": total_pages
-        }
+            return {
+                "skeleton_path": str(skeleton_file),
+                "draft_skeleton": draft_skeleton,
+                "crops_metadata": crops_metadata,
+                "total_pages": total_pages
+            }
+        finally:
+            doc.close()

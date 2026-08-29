@@ -24,10 +24,17 @@ class ChunkResult:
     success: bool
 
 class MinerUService:
-    """Wrapper for executing MinerU in an isolated subprocess to free memory after processing."""
+    """Wrapper for executing MinerU via Local Server Port (http://127.0.0.1:8000) or isolated CLI subprocess."""
 
-    def __init__(self, cli_path: str = "mineru", method: str = "auto", backend: str = "pipeline"):
+    def __init__(
+        self,
+        cli_path: str = "magic-pdf",
+        server_url: str = "http://127.0.0.1:8000",
+        method: str = "auto",
+        backend: str = "pipeline"
+    ):
         self.cli_path = cli_path
+        self.server_url = server_url.rstrip("/")
         self.method = method  # "auto", "ocr", "txt"
         self.backend = backend  # "pipeline", "hybrid-engine", "vlm-engine"
         self._current_proc: Optional[subprocess.Popen] = None
@@ -52,44 +59,71 @@ class MinerUService:
         except Exception:
             return False
 
+    def check_server_port(self) -> Tuple[bool, str]:
+        """Checks if MinerU Local Server is active on the configured port."""
+        import httpx
+        try:
+            for endpoint in [f"{self.server_url}/docs", f"{self.server_url}/v1/models", f"{self.server_url}/"]:
+                try:
+                    resp = httpx.get(endpoint, timeout=1.5)
+                    if resp.status_code < 500:
+                        return (True, f"MinerU Local Server is online at {self.server_url}")
+                except Exception:
+                    continue
+            return (False, f"No response from MinerU Local Server at {self.server_url}")
+        except Exception as e:
+            return (False, str(e))
+
     def is_available(self) -> bool:
-        """Checks if MinerU is available either as a module or as an executable."""
-        # 1. Direct Python module check (MinerU 3.x)
+        """Checks if MinerU is available either via local server port or as an executable/module."""
+        # 1. Check local server port first
+        ok, _ = self.check_server_port()
+        if ok:
+            return True
+
+        # 2. Check direct custom path
+        if self.cli_path and (Path(self.cli_path).exists() or shutil.which(self.cli_path)):
+            return True
+
+        # 3. Direct Python module check (MinerU 3.x)
         try:
             import mineru
             return True
         except ImportError:
             pass
 
-        # 2. Direct magic-pdf / mineru in PATH
-        if shutil.which("mineru") or shutil.which("magic-pdf"):
+        # 4. Direct magic-pdf / mineru in PATH
+        if shutil.which("magic-pdf") or shutil.which("mineru"):
             return True
 
-        # 3. Check virtualenv
-        local_mineru = Path.cwd() / "mineru_env" / "Scripts" / "mineru.exe"
+        # 5. Check virtualenv
+        local_mineru = Path.cwd() / "mineru_env" / "Scripts" / "magic-pdf.exe"
         if local_mineru.exists():
             return True
 
         return False
 
     def get_executable(self) -> str:
-        """Returns the best command or executable path for running MinerU."""
+        """Returns the best command or executable path for running MinerU CLI."""
+        if self.cli_path and (Path(self.cli_path).exists() or shutil.which(self.cli_path)):
+            return self.cli_path
+
+        if shutil.which("magic-pdf"):
+            return "magic-pdf"
+        if shutil.which("mineru"):
+            return "mineru"
+
         try:
             import mineru
             return f"{sys.executable} -m mineru.cli.client"
         except ImportError:
             pass
 
-        if shutil.which("mineru"):
-            return "mineru"
-        if shutil.which("magic-pdf"):
-            return "magic-pdf"
-
-        local_mineru = Path.cwd() / "mineru_env" / "Scripts" / "mineru.exe"
+        local_mineru = Path.cwd() / "mineru_env" / "Scripts" / "magic-pdf.exe"
         if local_mineru.exists():
             return str(local_mineru)
 
-        return self.cli_path
+        return self.cli_path or "magic-pdf"
 
     def run_single_pdf(
         self,
@@ -100,7 +134,7 @@ class MinerUService:
     ) -> Tuple[bool, Optional[str], Optional[Path]]:
         """
         Executes MinerU CLI command for a single PDF file:
-        `python -m mineru.cli.client -p "<input_pdf_path>" -o "<output_directory>" -m <method>`
+        Handles magic-pdf (without -b) and mineru / mineru.cli.client (with -b) appropriately.
         
         Returns: (success, markdown_content, output_folder)
         """
@@ -116,10 +150,13 @@ class MinerUService:
             return (False, None, None)
 
         use_method = method or self.method or "auto"
+        exe_cmd = self.get_executable()
+
+        is_legacy_magic_pdf = "magic-pdf" in exe_cmd.lower()
         primary_backend = self.backend or ("hybrid-engine" if self._has_cuda() else "pipeline")
 
         backends_to_try = [primary_backend]
-        if primary_backend != "pipeline":
+        if primary_backend != "pipeline" and not is_legacy_magic_pdf:
             backends_to_try.append("pipeline")
 
         proc_returncode = None
@@ -127,16 +164,15 @@ class MinerUService:
             if self._is_cancelled:
                 return (False, None, None)
 
-            cmd = [
-                sys.executable,
-                "-m", "mineru.cli.client",
-                "-p", str(pdf_file),
-                "-o", str(out_base),
-                "-m", use_method,
-                "-b", backend
-            ]
+            # Build command args
+            if exe_cmd.startswith(sys.executable):
+                cmd = [sys.executable, "-m", "mineru.cli.client", "-p", str(pdf_file), "-o", str(out_base), "-m", use_method, "-b", backend]
+            elif is_legacy_magic_pdf:
+                cmd = [exe_cmd, "-p", str(pdf_file), "-o", str(out_base), "-m", use_method]
+            else:
+                cmd = [exe_cmd, "-p", str(pdf_file), "-o", str(out_base), "-m", use_method, "-b", backend]
 
-            logger.info(f"Running MinerU CLI ({backend} backend): {' '.join(cmd)}")
+            logger.info(f"Running MinerU CLI: {' '.join(cmd)}")
 
             try:
                 self._current_proc = subprocess.Popen(
@@ -156,17 +192,17 @@ class MinerUService:
                     return (False, None, None)
 
                 if proc_returncode == 0:
-                    logger.info(f"MinerU execution ({backend}) completed successfully.")
+                    logger.info("MinerU execution completed successfully.")
                     break
                 else:
-                    logger.warning(f"MinerU ({backend}) exited with code {proc_returncode}. Output:\n{(stderr or stdout or '')[:1000]}")
+                    logger.warning(f"MinerU exited with code {proc_returncode}. Output:\n{(stderr or stdout or '')[:1000]}")
             except subprocess.TimeoutExpired:
                 if self._current_proc:
                     self._current_proc.kill()
                     self._current_proc = None
-                logger.error(f"MinerU CLI execution ({backend}) timed out after {timeout} seconds.")
+                logger.error(f"MinerU CLI execution timed out after {timeout} seconds.")
             except Exception as e:
-                logger.error(f"MinerU execution ({backend}) failed: {e}")
+                logger.error(f"MinerU execution failed: {e}")
 
         if proc_returncode != 0:
             return (False, None, None)

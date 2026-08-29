@@ -8,16 +8,61 @@ from app.core.blocks import (
     ListBlock, FootnoteBlock, ReferenceBlock, CodeBlock
 )
 
-# Ultra-clean, 100% self-contained LaTeX template.
-# Sets page layout using standard LaTeX primitive dimensions (no geometry/kvsetkeys dependency)
-# and safe url/href macros (no hyperref/kvsetkeys dependency) so it compiles seamlessly on ANY minimal TeX installation.
+# Comprehensive Universal LaTeX Master Template:
+# Pre-loads all standard packages for mathematics, physics, multilingual fonts (Vietnamese/Unicode),
+# complex tables, algorithms, graphics, and styling so any scientific document compiles without missing packages.
 LATEX_DOCUMENT_TEMPLATE = r"""\documentclass[11pt,a4paper]{article}
 
-\usepackage{amsmath,amssymb,amsfonts}
-\usepackage{graphicx}
-\usepackage{array}
+% =========================================================================
+% 1. Multilingual & Font Support (Unicode, Vietnamese & CJK Safe)
+% =========================================================================
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1,T5]{fontenc}
+  \usepackage[vietnamese,english]{babel}
+\else
+  \usepackage{fontspec}
+\fi
 
-% Standard page dimensions without external geometry package
+% =========================================================================
+% 2. Mathematics, Physics & Symbols Packages
+% =========================================================================
+\usepackage{amsmath,amssymb,amsfonts,amsthm,mathtools,bm,mathrsfs}
+\usepackage{physics,siunitx}
+\usepackage{cancel,cases,esint}
+
+% =========================================================================
+% 3. Tables, Arrays & Advanced Layout
+% =========================================================================
+\usepackage{booktabs,tabularx,longtable,multirow,multicol,array}
+\usepackage{makecell,colortbl}
+
+% =========================================================================
+% 4. Graphics, Figures, Subfigures & Colors
+% =========================================================================
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{float,wrapfig}
+\usepackage{caption,subcaption}
+\usepackage{tikz}
+
+% =========================================================================
+% 5. Code Listings & Algorithms
+% =========================================================================
+\usepackage{listings}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% =========================================================================
+% 6. Boxes, Lists, URLs & Hyperlinks
+% =========================================================================
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{url}
+\usepackage[hidelinks,colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% Standard Page Dimensions & Paragraph Formatting
 \setlength{\topmargin}{-0.5in}
 \setlength{\textheight}{9.0in}
 \setlength{\oddsidemargin}{0in}
@@ -25,10 +70,6 @@ LATEX_DOCUMENT_TEMPLATE = r"""\documentclass[11pt,a4paper]{article}
 \setlength{\textwidth}{6.5in}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt}
-
-% Safe hyperlink commands without hyperref/kvsetkeys package dependency
-\providecommand{\href}[2]{#2}
-\providecommand{\url}[1]{\texttt{#1}}
 
 \title{ {{- doc_title -}} }
 \author{ {{- doc_author -}} }
@@ -50,17 +91,35 @@ class LaTeXGenerator:
         pass
 
     def escape_latex(self, text: str) -> str:
-        """Escapes special LaTeX characters in regular prose (excluding math blocks)."""
+        """Escapes special LaTeX characters in regular prose while preserving inline math $...$ and display math $$...$$."""
+        if not text:
+            return ""
+
+        import re
+        # Find all math expressions ($...$ or $$...$$) and replace with unique placeholders
+        placeholders = []
+        def _mask_math(m):
+            placeholders.append(m.group(0))
+            return f"__LATEX_MATH_PH_{len(placeholders)-1}__"
+
+        # Mask $$...$$ first, then $...$
+        masked = re.sub(r"\$\$.*?\$\$", _mask_math, text, flags=re.DOTALL)
+        masked = re.sub(r"\$[^\$\n]+?\$", _mask_math, masked)
+
         replacements = [
             ("\\", r"\textbackslash{}"),
             ("&", r"\&"), ("%", r"\%"), ("#", r"\#"),
-            ("$", r"\$"), ("^", r"\^{}"), ("~", r"\~{}"),
-            ("{", r"\{"), ("}", r"\}")
+            ("^", r"\^{}"), ("~", r"\~{}"),
+            ("{", r"\{"), ("}", r"\}"), ("_", r"\_")
         ]
-        result = text
         for char, rep in replacements:
-            result = result.replace(char, rep)
-        return result
+            masked = masked.replace(char, rep)
+
+        # Restore math expressions untouched
+        for idx, math_str in enumerate(placeholders):
+            masked = masked.replace(f"__LATEX_MATH_PH_{idx}__", math_str)
+
+        return masked
 
     def render_block(self, block: BaseBlock) -> str:
         btype = block.block_type
@@ -81,11 +140,9 @@ class LaTeXGenerator:
             # Handle formula / concept annotation callouts
             if "💡" in text or text.strip().startswith(">"):
                 clean_note = text.replace(">", "").strip()
-                return f"\n\\begin{{quote}}\n\\small\\textbf{{Annotation:}} \\textit{{{clean_note}}}\n\\end{{quote}}\n\n"
-            # Escape only if it doesn't look like raw LaTeX
-            if "\\" not in text:
-                return f"{self.escape_latex(text)}\n\n"
-            return f"{text}\n\n"
+                escaped_note = self.escape_latex(clean_note)
+                return f"\n\\begin{{quote}}\n\\small\\textbf{{Annotation:}} \\textit{{{escaped_note}}}\n\\end{{quote}}\n\n"
+            return f"{self.escape_latex(text)}\n\n"
 
         elif btype == BlockType.CAPTION and isinstance(block, CaptionBlock):
             escaped = self.escape_latex(block.text or "")

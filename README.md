@@ -6,49 +6,67 @@
 
 ### Hệ thống OCR Tài Liệu Khoa Học Đa Cột, Bóc Tách Công Thức Toán LaTeX, Dịch Thuật Bảo Toàn & Trợ Lý AI
 
+[![Release](https://img.shields.io/github/v/release/Stufusic/SciDocOCR?color=blue&logo=github&label=Release)](https://github.com/Stufusic/SciDocOCR/releases)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![PySide6](https://img.shields.io/badge/GUI-PySide6%20(Qt6)-green?logo=qt&logoColor=white)](https://pypi.org/project/PySide6/)
-[![CUDA](https://img.shields.io/badge/GPU%20Acceleration-NVIDIA%20CUDA%2012.x-76B900?logo=nvidia&logoColor=white)](https://developer.nvidia.com/cuda-toolkit)
+[![YOLOv10m ONNX](https://img.shields.io/badge/Vision-YOLOv10m%20ONNX%20(CPU)-orange?logo=onnx&logoColor=white)](https://onnxruntime.ai/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Tests](https://img.shields.io/badge/Unit%20Tests-36%2F36%20Passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/Unit%20Tests-39%2F39%20Passed-brightgreen)](tests/)
 
-[Cài Đặt Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh) • [Dành Cho Máy CPU](#-dành-cho-máy-tính-không-có-gpu-nvidia-cpu-only-mode) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước-user-guide) • [Cấu Hình & Chunking](#-lưu-ý-về-phân-bổ-trang--chunk-page--chunk) • [Kiến Trúc Pipeline](#-kiến-trúc-hệ-thống--pipeline-xử-lý) • [Thử Nghiệm Bản PRO](#-thử-nghiệm-phiên-bản-nâng-cấp-scidoc-ocr-pro-studio)
+[⬇️ Tải Bản Release](#-tải-về-bản-phát-hành-mới-nhất-releases) • [Cài Đặt Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh) • [Chế Độ CPU Only](#-dành-cho-máy-tính-không-có-gpu-nvidia-cpu-only-mode) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước-user-guide) • [Kiến Trúc Chunk & Dịch Trang](#-cơ-chế-xử-lý-chunk-ocr--dịch-thuật-từng-trang) • [Thử Nghiệm Bản PRO](#-thử-nghiệm-phiên-bản-nâng-cấp-scidoc-ocr-pro-studio-v102)
 
 </div>
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt & Khởi Chạy Nhanh
+## ⬇️ Tải Về Bản Phát Hành Mới Nhất (Releases)
 
-Bạn có thể lựa chọn 1 trong 2 cách đơn giản sau để bắt đầu:
+Bạn có thể tải ngay bản phát hành đóng gói sẵn cho Windows:
 
-### 👉 Cách 1: Khởi chạy 1-Click bằng Script `run.bat` (Khuyên dùng nhất ⭐)
-*Tiện lợi, an toàn, không bị Windows chặn tải file và tự động xử lý mọi thứ.*
-
-1. Tải mã nguồn về máy: Bấm nút xanh **`Code`** ở đầu trang ➔ Chọn **`Download ZIP`** (hoặc Clone Git) và giải nén ra một thư mục.
-2. **Double-click vào tệp `run.bat`**.
-3. Hệ thống sẽ tự động kiểm tra và khởi động ứng dụng:
-   - Nếu máy tính đã có đủ thư viện, ứng dụng **SciDoc OCR Studio** sẽ mở lên ngay lập tức!
-   - Nếu máy tính chưa cài đặt thư viện, trình Launcher đồ họa sẽ tự động mở lên với 2 tùy chọn:
-     - **`📦 Cài đặt CPU (Không cần GPU)`**: Dành cho laptop văn phòng, máy không có card rời (tải siêu tốc trong 5–10 giây).
-     - **`⚡ Cài đặt GPU (MinerU CUDA)`**: Dành cho máy tính có card đồ họa rời NVIDIA.
-     - Sau khi cài đặt xong, hệ thống tự động tạo biểu tượng **Shortcut ngoài màn hình Desktop** và mở ứng dụng!
+* 📦 **Tải Bản Release Chính Thức:** [**SciDoc OCR Studio Releases on GitHub**](https://github.com/Stufusic/SciDocOCR/releases)
+* 🚀 **Trình Khởi Chạy Nhanh:** Tải file `SciDocOCR_Launcher.exe` hoặc file nén `SciDocOCR_Windows.zip`, giải nén và mở trực tiếp để sử dụng ngay!
 
 ---
 
-### 👉 Cách 2: Chạy qua Dòng lệnh CLI (Dành cho Developer / Lập trình viên)
-*Thao tác nhanh chóng qua môi trường dòng lệnh Terminal / CMD / PowerShell.*
+## 🚀 Hướng Dẫn Cài Đặt & Khởi Chạy Nhanh
+
+Bạn có thể lựa chọn 1 trong 3 cách sau để bắt đầu:
+
+### 👉 Cách 1: Khởi chạy 1-Click bằng Script `run.bat` (Khuyên dùng nhất ⭐)
+*Tiện lợi, an toàn, tự động kiểm tra thư viện và nạp môi trường tối ưu.*
+
+1. Tải mã nguồn về máy: Bấm nút xanh **`Code`** ở đầu trang ➔ Chọn **`Download ZIP`** (hoặc Clone Git) và giải nén ra một thư mục.
+2. **Double-click vào tệp `run.bat`**.
+3. Giao diện **Setup Wizard / Smart Launcher** sẽ tự động mở lên với các tùy chọn tiện ích:
+   - **`📦 Cài đặt CPU (Không cần GPU)`**: Dành cho laptop văn phòng, máy không có card rời (cài đặt siêu tốc trong vài giây).
+   - **`⚡ Cài đặt GPU (MinerU CUDA)`**: Dành cho máy tính có card đồ họa rời NVIDIA.
+   - **`📥 Tải Model YOLOv10 (~60MB)`**: Tải model thị giác SOTA bóc tách bố cục và công thức toán trực tiếp từ CDN/HuggingFace về máy.
+   - **`🚀 Khởi chạy SciDoc OCR`**: Tự động tạo biểu tượng **Desktop Shortcut** và mở ứng dụng ngay!
+
+---
+
+### 👉 Cách 2: Sử Dụng Setup Wizard / Launcher (.exe)
+*Dành cho người dùng thích cài đặt qua giao diện đồ họa chuẩn Windows.*
+
+1. Tải file `SciDocOCR_Launcher.exe` từ [GitHub Releases](https://github.com/Stufusic/SciDocOCR/releases).
+2. Mở file để khởi chạy Setup Wizard.
+3. Bấm **Tải Model YOLOv10 ONNX** để chuẩn bị động cơ thị giác offline, sau đó bấm **Khởi chạy**.
+
+---
+
+### 👉 Cách 3: Chạy qua Dòng lệnh CLI (Dành cho Developer / Lập trình viên)
+*Thao tác nhanh chóng qua Terminal / CMD / PowerShell.*
 
 ```bash
 # 1. Clone mã nguồn về máy
 git clone https://github.com/Stufusic/SciDocOCR.git
 cd SciDocOCR
 
-# 2. Cài đặt bản nhẹ cho máy CPU (không cần GPU):
+# 2. Cài đặt các gói phụ thuộc (Khuyên dùng uv để đạt tốc độ tối đa):
 pip install uv
 uv pip install -r requirements.txt
 
-# (Tùy chọn) Cài đặt thêm MinerU Engine cho máy có card đồ họa NVIDIA GPU:
+# (Tùy chọn) Cài đặt thêm MinerU GPU Engine nếu có card NVIDIA:
 uv pip install -U "mineru[all]"
 
 # 3. Khởi chạy ứng dụng Studio
@@ -59,23 +77,18 @@ python -m app.main
 
 ## 💻 Dành Cho Máy Tính Không Có GPU NVIDIA (CPU-Only Mode)
 
-Nếu máy tính của bạn là **Laptop văn phòng, PC chỉ dùng CPU Intel / AMD hoặc card đồ họa onboard (iGPU)**, bạn **hoàn toàn yên tâm sử dụng 100% đầy đủ các tính năng** của SciDoc OCR Studio nhờ kiến trúc đám mây & hybrid thông minh:
+Nếu máy tính của bạn là **Laptop văn phòng, PC chỉ dùng CPU Intel / AMD hoặc card đồ họa onboard (iGPU)**, bạn **hoàn toàn yên tâm sử dụng 100% đầy đủ các tính năng** của SciDoc OCR Studio nhờ kiến trúc phân tầng tối ưu:
 
 ### 🌟 Các Tính Năng Hoạt Động Hoàn Hảo Trên Máy CPU:
-1. **📄 Bóc tách Bố cục & Công thức Toán học (Vector Heuristic OCR)**:
-   - Tự động trích xuất toàn bộ văn bản đa cột, bảng biểu, hình ảnh và công thức toán trực tiếp từ PDF số hóa bằng CPU chỉ mất vài giây mỗi trang.
-2. **🌐 Dịch thuật Bảo toàn Công thức Siêu tốc (Google Translate)**:
-   - Dịch thuật toàn bộ tài liệu sang Tiếng Việt không giới hạn số trang, không cần GPU, bảo vệ 100% công thức toán học.
-3. **🤖 Trợ lý AI Assistant Đám mây (Cloud AI)**:
-   - Kết nối Google Gemini, OpenAI GPT, Claude, hoặc OpenRouter. Toàn bộ tính toán phức tạp chạy trên siêu máy chủ đám mây, máy tính của bạn chỉ nhận kết quả nên chạy cực kỳ mượt mà, không tốn RAM/CPU.
-4. **📐 Xuất bản Markdown, Mã nguồn LaTeX & Biên dịch PDF**:
-   - Tự động sinh file `.md`, `.tex` và xuất file PDF chất lượng cao.
-
-### ⚙️ Thiết Lập Khuyến Nghị Cho Máy CPU:
-Trong menu **`⚙ Settings`**:
-- **`AI Engine Mode`**: Chọn **`Auto`** hoặc **`Online Only`**.
-- **`Translation Engine`**: Chọn **`Google Translate`**.
-- **`Active Provider`**: Chọn **`Google Gemini`** (tốc độ cao, hỗ trợ gói miễn phí) hoặc nhà cung cấp yêu thích của bạn.
+1. **⚡ Định Vị Bố Cục Bằng YOLOv10m ONNX Trên CPU (Theo Từng Chunk)**:
+   - Sử dụng kiến trúc **NMS-Free** của YOLOv10m kết hợp `onnxruntime` (`CPUExecutionProvider`) để phân vùng Layout (Section, Heading, Paragraph, Table, Formula) cho từng trang trong chunk với tốc độ siêu nhanh **~25ms – 40ms / trang**.
+   - Nếu chưa tải file ONNX, hệ thống tự động fallback sang thuật toán **CV & Typography Heuristic Engine** có sẵn trong app $\rightarrow$ không bao giờ bị lỗi thiếu file.
+2. **🤖 Bóc Tách OCR Chuyên Sâu Bằng VLM (Online API hoặc Local Model)**:
+   - Các khung Section được chuyển tới mô hình Vision-Language (Google Gemini, OpenAI GPT-4o, Claude hoặc MinerU/LM Studio Local) để **chỉ tập trung OCR giải mã nội dung và công thức LaTeX** trong từng khung Section đó, trả về kết quả cấu trúc chuẩn xác theo từng chunk.
+3. **🌐 Dịch Thuật Tuần Tự Từng Trang (Page-by-Page Sequential Translation)**:
+   - Dịch tuần tự từng trang một (Page 1 $\to$ Page 2 $\to$ ...), tự động chia nhỏ câu ($\le 900$ ký tự) tránh lỗi HTTP 414 và bảo vệ tuyệt đối 100% công thức toán học (`$$...$$`, `$x$`).
+4. **📐 Xuất Bản Markdown, Mã Nguồn LaTeX & PDF Chất Lượng Cao**:
+   - Tự động sinh file `.md`, `.tex` chuẩn hóa và biên dịch PDF qua XeLaTeX hoặc ReportLab PDF Fallback Engine tích hợp sẵn.
 
 ---
 
@@ -94,136 +107,87 @@ Giao diện Studio được thiết kế theo cấu trúc 3 khung nhìn trực q
 └──────────────┴────────────────────────┴──────────────────────────────────────┘
 ```
 
-### Bước 1: Mở File PDF Khoa học
+### Bước 1: Mở File PDF Khoa Học
 - Bấm vào nút **`📁 Open PDF`** trên thanh công cụ (Toolbar) và chọn tệp PDF cần xử lý.
 - Hệ thống sẽ tự động tạo không gian làm việc và nạp các trang tài liệu vào danh sách.
 
-### Bước 2: Bóc tách Bố cục & Nhận diện Công thức Toán (`⚡ Process All`)
+### Bước 2: Bóc Tách Bố Cục & OCR Theo Chunk (`⚡ Process All`)
 - Bấm vào nút **`⚡ Process All`** trên thanh công cụ.
-- Hệ thống sẽ tự động phân chia tài liệu theo từng chunk (4 trang/chunk), gọi động cơ OCR bóc tách văn bản đa cột, nhận diện công thức LaTeX và trích xuất hình vẽ vào thư mục `images/`.
-- Tiến trình xử lý hiển thị trực tiếp ở thanh trạng thái phía dưới.
+- Hệ thống thực thi theo **Mô hình Pipeline 2 Tầng Theo Chunk**:
+  1. **YOLOv10m ONNX (CPU)** quét từng trang trong chunk để đóng khung chính xác tọa độ các Section, Bảng biểu, Hình ảnh và Công thức.
+  2. Gửi các vùng khung Section tới **VLM (Online API / Local Model)** để OCR giải mã chữ viết và công thức LaTeX chuyên sâu.
+  3. Lưu kết quả chunk xuống đĩa, render ảnh preview và gọi `gc.collect()` giải phóng RAM ngay trước khi chuyển sang chunk tiếp theo.
 
-### Bước 3: Dịch thuật Bảo toàn Công thức (`🌐 Translate`)
-- Bấm vào nút **`🌐 Translate`** trên thanh công cụ để dịch toàn bộ tài liệu sang ngôn ngữ đích (Tiếng Việt).
-- Toàn bộ công thức toán học (`$$...$$`, `$x$`), mã nguồn và trích dẫn `\cite{}`, `\ref{}` được bảo vệ tuyệt đối và khôi phục nguyên vẹn 100% sau khi dịch.
+### Bước 3: Dịch Thuật Tuần Tự Từng Trang (`🌐 Translate`)
+- Bấm vào nút **`🌐 Translate`** trên thanh công cụ:
+  - Hệ thống tiến hành **dịch tuần tự từng trang một (Page-by-Page)** theo luồng queue nhẹ nhàng.
+  - Toàn bộ công thức toán học (`$$...$$`, `$x$`), code và trích dẫn được bảo vệ nguyên vẹn qua bộ đệm SHA-256.
 
-### Bước 4: Tương tác với Trợ lý AI Hỏi đáp (`💬 AI Assistant`)
+### Bước 4: Tương Tác Với Trợ Lý AI Hỏi Đáp (`💬 AI Assistant`)
 - Chuyển sang tab **`💬 AI Assistant`** ở khung bên phải:
   1. Chọn **Nhà cung cấp (Provider)**: Google Gemini, LM Studio (Local), OpenAI, Anthropic Claude, OpenRouter, hoặc Custom API.
-  2. Hệ thống sẽ **tự động kết nối trực tiếp đến API để nạp toàn bộ danh sách mô hình mới nhất đang hoạt động** vào thanh cuộn chọn mô hình.
+  2. Hệ thống **tự động kết nối trực tiếp đến API để nạp toàn bộ danh sách mô hình mới nhất** vào thanh cuộn.
   3. Bấm **`⚙ API/URL`** nếu bạn muốn xem hoặc dán nhanh API Key / Base URL trực tiếp trong khung chat.
-  4. Nhập câu hỏi về tài liệu, giải thích công thức toán hoặc yêu cầu tóm tắt. Câu trả lời được tự động lọc sạch các chuỗi suy nghĩ nội bộ để luôn ngắn gọn, chính xác.
+  4. Đặt câu hỏi về nội dung tài liệu, giải thích công thức toán hoặc yêu cầu tóm tắt.
 
-### Bước 5: Soát lỗi Công thức có Độ tin cậy Thấp (`🔍 Review Mode`)
-- Nếu tài liệu có các công thức mờ hoặc chất lượng scan kém, nút **`🔍 Review (N)`** ở thanh trạng thái phía dưới sẽ sáng lên.
-- Bấm vào nút Review để mở cửa sổ đối soát: so sánh trực tiếp hình ảnh cắt từ PDF gốc với mã LaTeX nhận diện được, cho phép bạn Chấp nhận (**Accept**), Chỉnh sửa (**Edit**) hoặc Hủy bỏ (**Reject**).
+### Bước 5: Soát Lỗi Công Thức (`🔍 Review Mode`)
+- Nếu tài liệu có công thức chất lượng scan kém, nút **`🔍 Review (N)`** ở thanh trạng thái sẽ sáng lên.
+- Mở cửa sổ đối soát để so sánh ảnh gốc với mã LaTeX nhận diện được và tùy chỉnh nếu cần.
 
-### Bước 6: Xuất bản Đa Định dạng (`📤 Export...`)
-- Bấm vào nút **`📤 Export...`** trên thanh công cụ.
-- Tùy chọn định dạng cần xuất:
+### Bước 6: Xuất Bản Đa Định Dạng (`📤 Export...`)
+- Bấm vào nút **`📤 Export...`** trên thanh công cụ:
   - **Markdown (`.md`)**: Kèm toàn bộ thư mục hình ảnh `images/`.
   - **LaTeX Source (`.tex`)**: Mã nguồn LaTeX chuẩn hóa với các gói `amsmath`, `amssymb`, `graphicx`.
   - **Tài liệu PDF (`.pdf`)**: Tự động biên dịch qua XeLaTeX hoặc bộ tạo PDF tích hợp sẵn.
 
 ---
 
-## ⚙️ Lưu Ý Về Phân Bổ Trang / Chunk (Page / Chunk)
+## ⚙️ Cơ Chế Xử Lý Chunk OCR & Dịch Thuật Từng Trang
 
-Tài liệu khoa học thường rất nặng, chứa hàng trăm công thức ma trận, tích phân và sơ đồ mạng. Để tối ưu hóa hiệu năng, hệ thống áp dụng cơ chế **Phân mảnh thông minh (Smart 4-Page Chunking)**:
+Để tối ưu hóa hiệu năng, chống tràn RAM và không bị nghẽn mạng, kiến trúc hệ thống phân tách rõ ràng:
 
+```mermaid
+flowchart TD
+    subgraph ChunkOCR ["1. OCR Theo Từng Chunk (4 Trang / Khối)"]
+        A[PDF 4-Page Chunk] --> B[YOLOv10m ONNX CPU: Định vị Layout & Khung Section]
+        B --> C[VLM Online/Local AI: Bóc tách OCR nội dung trong từng khung Section]
+        C --> D[Lưu Checkpoint Chunk xuống đĩa & del + gc.collect giải phóng RAM]
+    end
+
+    subgraph PageTranslate ["2. Dịch Thuật Tuần Tự Từng Trang (Page-by-Page)"]
+        E[Tài liệu AST sau OCR] --> F[Dịch tuần tự: Trang 1 -> Trang 2 -> Trang 3...]
+        F --> G[Chia nhỏ câu <= 900 ký tự & Bảo toàn công thức $$...$$, $x$]
+        G --> H[Lưu Cache SHA-256 & Cập nhật giao diện trực tiếp]
+    end
+
+    ChunkOCR --> PageTranslate
 ```
-Tài liệu 14 Trang  ➔  [Chunk 1: Tr 1-4]  +  [Chunk 2: Tr 5-8]  +  [Chunk 3: Tr 9-12]  +  [Chunk 4: Tr 13-14]
-```
 
-### 🎯 Tại sao lại chia theo Chunk?
-1. **Chống tràn bộ nhớ GPU VRAM**: Các mô hình AI phân tích bố cục và nhận diện công thức ngốn nhiều VRAM nếu nạp 20–50 trang cùng lúc. Chia chunk giữ mức VRAM luôn ổn định.
-2. **Khả năng chịu lỗi (Fault-Tolerance)**: Nếu 1 trang trong tài liệu gặp sự cố, các chunk còn lại vẫn được lưu nguyên vẹn vào bộ nhớ đệm Cache SHA-256.
-3. **Tối ưu Timeout (600 giây)**: Mỗi chunk được cấp hạn mức thời gian xử lý lên tới 10 phút, đảm bảo ngay cả những trang toán học phức tạp nhất cũng được giải mã hoàn chỉnh.
-
-### 📊 Bảng Khuyến Nghị Cấu Hình Phần Cứng:
-
-| Cấu hình Phần cứng | Dung lượng VRAM | Khuyến nghị Chunk Size | Ghi chú |
-| :--- | :--- | :---: | :--- |
-| **Máy chỉ dùng CPU** | RAM 8GB–16GB | `2 – 4 trang` | Xử lý ổn định, tiết kiệm RAM |
-| **GPU Laptop (RTX 3050 / 4050 / 4060)** | VRAM 4GB – 8GB | `4 trang (Mặc định)` | Tối ưu hóa tốc độ và bộ nhớ VRAM |
-| **GPU Desktop Cao cấp (RTX 3090 / 4090)** | VRAM 16GB – 24GB | `8 – 12 trang` | Tốc độ xử lý hàng loạt siêu nhanh |
+### 🎯 Ưu Điểm Của Cơ Chế Này:
+1. **YOLOv10m dẫn đường cho VLM**: Thay vì để VLM tự đoán vị trí (dễ bị sai thứ tự đọc), YOLOv10m chạy trên CPU định vị sẵn từng khung Section, VLM chỉ việc đọc nội dung trong khung đó $\rightarrow$ độ chính xác đạt mức cao nhất.
+2. **Quản lý RAM theo Chunk**: Mỗi chunk sau khi hoàn tất bóc tách sẽ giải phóng toàn bộ tensors và buffer thô (`gc.collect()`), giúp xử lý tài liệu hàng trăm trang mà RAM không bao giờ bị tăng đột biến.
+3. **Dịch theo Trang độc lập**: Tách biệt khâu dịch ra từng trang giúp tránh lỗi nghẽn đường truyền HTTP 414, không lo dính rate-limit của dịch vụ dịch thuật và có thể xem kết quả dịch của trang ngay lập tức.
 
 ---
 
 ## 🛠️ Hướng Dẫn Cấu Hình Chi Tiết (Settings Guide)
 
-Bạn có thể cấu hình nhanh các tham số qua giao diện **`⚙ Settings`** trên thanh công cụ:
+Trong giao diện **`⚙ Settings`**:
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                     SciDoc OCR - Settings                        │
-├──────────────────────────────────────────────────────────────────┤
-│ AI Engine Mode:      [ Auto (Tự động nhận diện)               ▼] │
-│ Translation Engine:  [ Google Translate (Miễn phí / Tốc độ cao)▼]│
-│ Active Provider:     [ Google Gemini / OpenAI / Claude / LM...▼] │
-│ API Key:             [ ••••••••••••••••••••••••••••••••••••••  👁]│
-│ Base URL:            [ Endpoint URL của nhà cung cấp API...     ]│
-│ Model:               [ (Tự động nạp danh sách model trực tiếp) ▼]│
-└──────────────────────────────────────────────────────────────────┘
-```
+### 1. Nhóm Động Cơ Cục Bộ (🏠 Local AI & Offline Engine):
+- **LM Studio (Local LLM)**: Endpoint mặc định `http://127.0.0.1:1234/v1` cho phép chat và dịch thuật offline 100%.
+- **MinerU Engine (Local Server & CLI)**:
+  - Cổng Server Local mặc định: `http://127.0.0.1:8000` (có nút **🔌 Test Port** kiểm tra tức thì).
+  - Hoặc chọn đường dẫn CLI (`magic-pdf.exe` / `mineru.exe`) bằng nút **📁 Browse** hoặc **🔍 Auto-Detect**.
+- **Model YOLOv10 ONNX**: Hiển thị trạng thái model trên CPU và nút **📥 Tải Model YOLOv10 (~60MB)** trực tiếp từ CDN.
 
-### 1. Các Chế Độ Động Cơ AI (`AI Engine Mode`):
-- **`Auto` (Mặc định - Khuyên dùng)**: Tự động phát hiện mạng và phần cứng. Ưu tiên GPU cục bộ, nếu không có sẽ tự động fallback qua API Online.
-- **`MinerU`**: Sử dụng trực tiếp động cơ MinerU CLI cục bộ với tăng tốc NVIDIA CUDA GPU.
-- **`LM Studio (Local Only)`**: Kết nối trực tiếp máy chủ LM Studio offline (`http://127.0.0.1:1234/v1`) bảo mật dữ liệu tuyệt đối.
-- **`Online Only`**: Sử dụng các nhà cung cấp đám mây (Google Gemini, OpenAI, Claude, OpenRouter).
-
-### 2. Quản Lý Khóa API & Danh Sách Mô Hình Động (Live Model Discovery):
-- Hỗ trợ nhập và lưu trữ độc lập khóa API cho từng nhà cung cấp.
-- Khi chuyển đổi giữa các nhà cung cấp, khóa API và Base URL đã lưu **không bao giờ bị mất** và tự động đồng bộ vào tệp `.env`.
-- **Tự động quét danh sách mô hình thực tế**: Khi bạn chọn nhà cung cấp và nhập API key, hệ thống kết nối trực tiếp đến máy chủ để lấy toàn bộ danh sách model đang hoạt động mà không dùng danh sách cố định cũ.
+### 2. Nhóm Động Cơ Đám Mây (🌐 Online Cloud API Engine):
+- Hỗ trợ nhập và lưu trữ độc lập khóa API cho từng nhà cung cấp: **Google Gemini**, **OpenAI**, **Anthropic Claude**, **OpenRouter**, **Custom OpenAI-Compatible API**.
+- Tự động quét và nạp danh sách model thời gian thực (Live Model Discovery).
 
 ### 3. Động Cơ Dịch Thuật (`Translation Engine`):
-- **`Google Translate`**: Dịch thuật tốc độ cực cao, hoàn toàn miễn phí, không yêu cầu API Key và không giới hạn Quota.
-- **`AI LLM Translation`**: Dịch thuật nâng cao qua mô hình ngôn ngữ lớn kết hợp tự động tạo chú thích giải thích công thức toán học (`> 💡`).
-
----
-
-## 🌟 Tính Năng Nổi Bật
-
-- 🔬 **Nhận diện Bố cục Đa Cột & Bảng biểu**: Bóc tách tài liệu 2 cột, căn lề, hình vẽ và bảng biểu phức tạp.
-- ➕ **Trích xuất Công thức LaTeX Chuyên sâu**: Nhận diện chính xác công thức toán trong dòng (`$x$`) và khối (`$$...$$`), kiểm tra cú pháp bằng SymPy.
-- 🛡️ **Bảo toàn Công thức 100% khi Dịch thuật (`ProtectedBlockParser`)**: Tự động mã hóa toàn bộ `$$...$$`, `$x$`, `\cite{}`, `\ref{}` trước khi gửi dịch và đối soát khôi phục nguyên vẹn sau dịch.
-- 💬 **Trợ lý AI Chat Assistant**: Khung chat tương tác trực tiếp theo ngữ cảnh PDF, hỗ trợ chọn model động và tự động lọc sạch các khối suy nghĩ nội bộ (`<think>`, `<thought>`).
-- 📐 **Biên dịch Xuất bản Đa Định dạng**: Xuất file Markdown sạch, mã nguồn LaTeX (`.tex`) và tự động biên dịch tài liệu PDF chất lượng cao qua XeLaTeX.
-
----
-
-## 🏗️ Kiến trúc Hệ thống & Pipeline Xử lý
-
-> 📖 **Xem toàn bộ sơ đồ tuần tự (Sequence Diagram), sơ đồ lớp AST (Class Diagram) và chi tiết 7 giai đoạn xử lý tại:** [**PIPELINE.md**](PIPELINE.md)
-
-```mermaid
-flowchart LR
-    PDF["📄 PDF Khoa học"] --> SPLIT["✂️ Chia 4 Trang/Chunk"]
-    SPLIT --> OCR["🔬 MinerU / Local OCR"]
-    OCR --> AST["🌳 Document AST"]
-    AST --> AUDIT["🤖 AI LaTeX Audit"]
-    AUDIT --> TRANS["🌐 Dịch Bảo Toàn Công Thức"]
-    TRANS --> PUB["📐 Xuất Bản Multi-Format"]
-    PUB --> OUT1["📝 Markdown"]
-    PUB --> OUT2["📑 XeLaTeX / PDF"]
-```
-
----
-
-## 📦 Hướng Dẫn Đóng Gói Phân Phối
-
-Bạn có thể tự đóng gói ứng dụng thành file `.exe` cho Windows:
-
-```bash
-# 1. Đóng gói Launcher 1-Click siêu nhẹ (~13 MB):
-python build_launcher.py
-
-# 2. Đóng gói toàn bộ ứng dụng chính thành 1 file độc lập:
-python build_exe.py
-```
-> Kết quả xuất bản sẽ nằm trong thư mục `dist/`.
+- **`Google Translate`**: Miễn phí, tốc độ cực nhanh, chia nhỏ câu $\le 900$ ký tự chống lỗi HTTP 414.
+- **`AI LLM Translation`**: Dịch chuyên sâu kết hợp tự động sinh ghi chú giải thích công thức toán học (`> 💡`).
 
 ---
 
@@ -231,8 +195,8 @@ python build_exe.py
 
 - **Hệ điều hành**: Windows 10 / 11 (64-bit).
 - **Python**: Python 3.11, 3.12 hoặc 3.13.
-- **Bộ nhớ RAM**: Tối thiểu 8 GB RAM (Khuyến nghị 16 GB).
-- **Card đồ họa (Tùy chọn)**: Hỗ trợ card NVIDIA (CUDA 12.x) để tăng tốc nhận diện công thức toán học.
+- **Bộ nhớ RAM**: Tối thiểu 4 GB RAM (Khuyến nghị 8 GB – 16 GB).
+- **Card đồ họa (Tùy chọn)**: Hỗ trợ card NVIDIA (CUDA 12.x) nếu muốn tăng tốc nhận diện qua MinerU GPU. Chế độ CPU tiêu chuẩn không yêu cầu card rời.
 
 ---
 

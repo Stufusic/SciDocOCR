@@ -126,9 +126,11 @@ class FormulaOCR:
 
     def normalize_inline_math(self, text: str) -> str:
         """Finds small inline equations and wraps them in $...$ if not already wrapped."""
-        # Simple inline formula patterns like "where x = 5" or "for α > 0"
         normalized = text
         for char, latex_sym in UNICODE_TO_LATEX.items():
             if char in normalized:
-                normalized = normalized.replace(char, latex_sym)
+                # Wrap in $...$ if not already inside math delimiters
+                normalized = normalized.replace(char, f"${latex_sym}$")
+        # Clean double dollar signs if accidentally nested
+        normalized = normalized.replace("$$", "$").replace("$$", "$")
         return normalized

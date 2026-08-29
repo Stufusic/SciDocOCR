@@ -114,20 +114,25 @@ class PDFViewer(QWidget):
             if rw <= 0 or rh <= 0:
                 continue
 
-            color = QColor(59, 130, 246, 140)  # Default blue
+            color = QColor(59, 130, 246, 140)  # Default blue for Paragraph
             if block.block_type == BlockType.HEADING:
-                color = QColor(16, 185, 129, 160)  # Green
+                color = QColor(16, 185, 129, 170)  # Emerald Green
             elif block.block_type == BlockType.FORMULA:
                 color = QColor(168, 85, 247, 180)  # Purple
             elif block.block_type == BlockType.TABLE:
-                color = QColor(245, 158, 11, 160)  # Amber
+                color = QColor(245, 158, 11, 170)  # Amber
+            elif block.block_type == BlockType.FIGURE:
+                color = QColor(244, 63, 94, 180)   # Rose / Red
+            elif block.block_type == BlockType.CAPTION:
+                color = QColor(6, 182, 212, 170)   # Cyan
 
             pen = QPen(color, 2)
-            brush = QBrush(QColor(color.red(), color.green(), color.blue(), 30))
+            brush = QBrush(QColor(color.red(), color.green(), color.blue(), 25))
             rect_item = self.scene.addRect(rx, ry, rw, rh, pen, brush)
 
             # Add confidence tag
-            tag = f"{block.block_type.value[:3].upper()} {int(block.confidence * 100)}%"
+            tag_name = block.block_type.value[:4].upper()
+            tag = f"{tag_name} {int(block.confidence * 100)}%"
             tag_font = QFont("Segoe UI", 8)
             tag_font.setBold(True)
             text_item = self.scene.addSimpleText(tag, tag_font)

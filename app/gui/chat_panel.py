@@ -148,15 +148,7 @@ class AIChatPanel(QWidget):
         self.btn_clear.setObjectName("secondaryBtn")
         self.btn_clear.clicked.connect(self._clear_chat)
         row2_bar.addWidget(self.btn_clear)
-
-        self.lbl_models_status = QLabel("Đang khởi tạo kết nối mô hình...")
-        self.lbl_models_status.setStyleSheet("color: #94a3b8; font-size: 11px;")
-        row2_bar.addWidget(self.lbl_models_status, stretch=1)
-
-        self.chk_attach_doc = QCheckBox("Gửi kèm ngữ cảnh PDF")
-        self.chk_attach_doc.setChecked(True)
-        self.chk_attach_doc.setStyleSheet("color: #cbd5e1; font-size: 11px;")
-        row2_bar.addWidget(self.chk_attach_doc)
+        row2_bar.addStretch()
 
         layout.addLayout(row2_bar)
 
@@ -198,9 +190,7 @@ class AIChatPanel(QWidget):
         info_bar = QHBoxLayout()
         self.lbl_models_status = QLabel("Đang khởi tạo kết nối mô hình...")
         self.lbl_models_status.setStyleSheet("color: #94a3b8; font-size: 11px;")
-        info_bar.addWidget(self.lbl_models_status)
-
-        info_bar.addStretch()
+        info_bar.addWidget(self.lbl_models_status, stretch=1)
 
         self.chk_attach_doc = QCheckBox("Gửi kèm ngữ cảnh PDF hiện tại")
         self.chk_attach_doc.setChecked(True)
@@ -453,20 +443,28 @@ class AIChatPanel(QWidget):
         formatted = strip_thought_content(text)
         formatted = formatted.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         
-        # Code blocks ```...```
-        formatted = re.sub(
-            r"```([a-zA-Z0-9_-]*)\n([\s\S]*?)```",
-            r'<pre style="background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #475569; overflow-x: auto;"><code>\2</code></pre>',
-            formatted
-        )
-        # Inline code `...`
+        # 1. Protect code blocks ```...```
+        code_blocks = []
+        def _save_block(m):
+            code_blocks.append(m.group(2))
+            return f"__CODE_BLOCK_SLOT_{len(code_blocks)-1}__"
+
+        formatted = re.sub(r"```([a-zA-Z0-9_-]*)\n([\s\S]*?)```", _save_block, formatted)
+
+        # 2. Inline code `...`
         formatted = re.sub(r"`([^`]+)`", r'<code style="background: #334155; padding: 2px 4px; border-radius: 3px;">\1</code>', formatted)
-        # Bold
+        # 3. Bold
         formatted = re.sub(r"\*\*([^\*]+)\*\*", r"<b>\1</b>", formatted)
-        # Italic
+        # 4. Italic
         formatted = re.sub(r"\*([^\*]+)\*", r"<i>\1</i>", formatted)
-        # Linebreaks
+        # 5. Linebreaks for prose
         formatted = formatted.replace("\n", "<br>")
+
+        # 6. Restore code blocks with original indentation and whitespace
+        for idx, code_body in enumerate(code_blocks):
+            code_html = f'<pre style="background: #1e293b; color: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #475569; overflow-x: auto; white-space: pre-wrap; font-family: Consolas, monospace; font-size: 12px;"><code>{code_body}</code></pre>'
+            formatted = formatted.replace(f"__CODE_BLOCK_SLOT_{idx}__", code_html)
+
         return formatted
 
     def _append_user_message(self, text: str):

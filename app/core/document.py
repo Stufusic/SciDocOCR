@@ -59,8 +59,9 @@ class PageData:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> PageData:
-        blocks_data = data.pop("blocks", [])
-        page = cls(**data)
+        data_copy = dict(data)
+        blocks_data = data_copy.pop("blocks", [])
+        page = cls(**data_copy)
         page.blocks = [block_from_dict(b) for b in blocks_data]
         return page
 
@@ -85,7 +86,13 @@ class Document:
         self.pages: List[PageData] = []
 
     def add_page(self, page: PageData) -> None:
+        # Check if page already exists to prevent duplicate pages during resumption
+        for idx, existing in enumerate(self.pages):
+            if existing.page_number == page.page_number:
+                self.pages[idx] = page
+                return
         self.pages.append(page)
+        self.pages.sort(key=lambda p: p.page_number)
         self.metadata.page_count = len(self.pages)
 
     def get_page(self, page_number: int) -> Optional[PageData]:

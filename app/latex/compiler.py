@@ -71,6 +71,8 @@ class LaTeXCompiler:
 
         # Record modification time before compile
         pre_mtime = expected_pdf.stat().st_mtime if expected_pdf.exists() else 0
+        res = None
+        log_output = ""
 
         for engine in target_engines:
             logger.info(f"Compiling {tex_path.name} with engine: {engine}")
@@ -135,7 +137,8 @@ class LaTeXCompiler:
             return (True, str(expected_pdf), log_output)
 
         errors = self.validator.parse_compiler_log(log_output)
-        error_msg = f"LaTeX compilation exited with code {res.returncode}. Found {len(errors)} errors."
+        return_code = res.returncode if res is not None else -1
+        error_msg = f"LaTeX compilation exited with code {return_code}. Found {len(errors)} errors."
         logger.error(error_msg)
         return (False, "", log_output)
 
@@ -144,6 +147,7 @@ class LaTeXCompiler:
         Builds a styled PDF directly from Document AST using ReportLab
         when no system TeX installation is available.
         """
+        import html
         from reportlab.lib.pagesizes import letter, A4
         from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -164,9 +168,9 @@ class LaTeXCompiler:
         story = []
 
         if doc.metadata.title:
-            story.append(Paragraph(doc.metadata.title, title_style))
+            story.append(Paragraph(html.escape(doc.metadata.title), title_style))
             if doc.metadata.author:
-                story.append(Paragraph(f"Author: {doc.metadata.author}", body_style))
+                story.append(Paragraph(f"Author: {html.escape(doc.metadata.author)}", body_style))
             story.append(Spacer(1, 10))
 
         from app.core.blocks import BlockType, HeadingBlock, ParagraphBlock, FormulaBlock, TableBlock
@@ -174,14 +178,16 @@ class LaTeXCompiler:
         for page in doc.pages:
             for block in page.blocks:
                 if block.block_type == BlockType.HEADING and isinstance(block, HeadingBlock):
-                    story.append(Paragraph(block.text, h2_style))
+                    story.append(Paragraph(html.escape(block.text or ""), h2_style))
                 elif block.block_type == BlockType.PARAGRAPH and isinstance(block, ParagraphBlock):
-                    story.append(Paragraph(block.text, body_style))
+                    story.append(Paragraph(html.escape(block.text or ""), body_style))
                 elif block.block_type == BlockType.FORMULA and isinstance(block, FormulaBlock):
-                    story.append(Paragraph(f"[Equation] {block.latex}", math_style))
+                    story.append(Paragraph(f"[Equation] {html.escape(block.latex or '')}", math_style))
                 elif block.block_type == BlockType.TABLE and isinstance(block, TableBlock):
                     if block.rows:
-                        t = Table(block.rows)
+                        # Clean cell text for table
+                        escaped_rows = [[html.escape(str(c)) for c in row] for row in block.rows]
+                        t = Table(escaped_rows)
                         t.setStyle(TableStyle([
                             ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
                             ('GRID', (0,0), (-1,-1), 0.5, colors.grey),

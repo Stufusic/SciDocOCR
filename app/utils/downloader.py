@@ -6,49 +6,64 @@ import sys
 import time
 import httpx
 from pathlib import Path
-from typing import Optional, Callable, Dict, Any
+from typing import Optional, Callable, Dict, Any, Tuple
 from app.utils.logging import get_logger
 
 logger = get_logger("ModelDownloader")
 
 # Predefined Official CDN & HuggingFace Mirror URLs for On-Demand Models
 OFFICIAL_MODELS: Dict[str, Dict[str, Any]] = {
-    "yolov10_doclayout": {
-        "name": "YOLOv10 DocLayout ONNX (Medium - SOTA)",
-        "size_mb": 62.5,
+    "yolov8_doclayout": {
+        "name": "YOLOv8 DocLayout ONNX (Layout Analysis)",
+        "size_mb": 45.0,
         "filename": "yolov8_layout.onnx",
         "urls": [
-            "https://huggingface.co/Oblix/yolov10m-doclaynet_ONNX_document-layout-analysis/resolve/main/onnx/model.onnx",
-            "https://hf-mirror.com/Oblix/yolov10m-doclaynet_ONNX_document-layout-analysis/resolve/main/onnx/model.onnx",
-            "https://huggingface.co/Oblix/yolov10b-doclaynet_ONNX_document-layout-analysis/resolve/main/onnx/model.onnx"
+            "https://huggingface.co/herobd/yolov8_doclaynet/resolve/main/yolov8n-doclaynet.onnx",
+            "https://hf-mirror.com/herobd/yolov8_doclaynet/resolve/main/yolov8n-doclaynet.onnx",
+            "https://huggingface.co/herobd/yolov8_doclaynet/resolve/main/yolov8s-doclaynet.onnx"
         ],
-        "description": "Model nhận diện bố cục tài liệu & công thức toán học SOTA trên CPU"
+        "description": "Model YOLOv8 nhận diện phân vùng bố cục văn bản, bảng biểu, công thức toán trên CPU"
+    },
+    "unimernet": {
+        "name": "UniMERNet Formula OCR (Math LaTeX Recognition)",
+        "size_mb": 115.0,
+        "filename": "unimernet.pth",
+        "urls": [
+            "https://huggingface.co/wanderkid/unimernet_small/resolve/main/pytorch_model.pth",
+            "https://hf-mirror.com/wanderkid/unimernet_small/resolve/main/pytorch_model.pth",
+            "https://huggingface.co/opendatalab/PDF-Extract-Kit-1.0/resolve/main/models/MFR/unimernet_small/pytorch_model.pth"
+        ],
+        "description": "Model UniMERNet chuyên dụng nhận diện và giải mã công thức toán học sang LaTeX chuẩn"
     }
 }
 
 def get_default_model_dir() -> Path:
-    """Returns the default directory for storing downloaded ONNX models."""
+    """Returns the default directory for storing downloaded ONNX/weights models."""
     app_root = Path(__file__).resolve().parent.parent.parent
     model_dir = app_root / "assets" / "models"
     model_dir.mkdir(parents=True, exist_ok=True)
     return model_dir
 
-def is_model_installed(model_key: str = "yolov10_doclayout") -> bool:
+def is_model_installed(model_key: str = "yolov8_doclayout") -> bool:
     """Checks if a specified model is already present locally."""
     meta = OFFICIAL_MODELS.get(model_key)
     if not meta:
-        return False
+        # Fallback aliases
+        if model_key == "yolov10_doclayout":
+            meta = OFFICIAL_MODELS.get("yolov8_doclayout")
+        if not meta:
+            return False
     
     target_file = get_default_model_dir() / meta["filename"]
-    if target_file.exists() and target_file.stat().st_size > 1_000_000:
+    if target_file.exists() and target_file.stat().st_size > 500_000:
         return True
     
     # Check user home directory fallback
     home_file = Path.home() / ".scidoc" / "models" / meta["filename"]
-    return home_file.exists() and home_file.stat().st_size > 1_000_000
+    return home_file.exists() and home_file.stat().st_size > 500_000
 
 def download_model_streaming(
-    model_key: str = "yolov10_doclayout",
+    model_key: str = "yolov8_doclayout",
     dest_path: Optional[Path] = None,
     progress_callback: Optional[Callable[[int, int, float, str], None]] = None,
     cancel_check: Optional[Callable[[], bool]] = None
@@ -59,6 +74,9 @@ def download_model_streaming(
     
     Returns: (success, result_message_or_path)
     """
+    if model_key == "yolov10_doclayout":
+        model_key = "yolov8_doclayout"
+
     meta = OFFICIAL_MODELS.get(model_key)
     if not meta:
         return (False, f"Model key '{model_key}' not found in registry.")
@@ -98,26 +116,23 @@ def download_model_streaming(
 
                             now = time.time()
                             if now - last_update > 0.15 or downloaded == total_bytes:
-                                elapsed = max(0.001, now - start_time)
-                                speed_mb = (downloaded / (1024 * 1024)) / elapsed
-                                pct = int((downloaded / total_bytes) * 100) if total_bytes > 0 else 0
-                                status_str = f"Đang tải {meta['name']}: {downloaded // (1024*1024)}MB / {total_bytes // (1024*1024)}MB ({speed_mb:.1f} MB/s)"
-                                
+                                elapsed = max(0.01, now - start_time)
+                                speed_mb_s = (downloaded / (1024 * 1024)) / elapsed
+                                status_txt = f"{meta['name']} ({downloaded / (1024*1024):.1f}MB / {total_bytes / (1024*1024):.1f}MB)"
                                 if progress_callback:
-                                    progress_callback(downloaded, total_bytes, speed_mb, status_str)
+                                    progress_callback(downloaded, total_bytes, speed_mb_s, status_txt)
                                 last_update = now
 
-                    # Validate downloaded file size
-                    if temp_file.exists() and temp_file.stat().st_size > 1_000_000:
+                    # Rename temp file to final on success
+                    if temp_file.exists() and temp_file.stat().st_size > 100_000:
                         if out_file.exists():
                             out_file.unlink()
                         temp_file.rename(out_file)
-                        logger.info(f"Model successfully saved to: {out_file}")
+                        logger.info(f"Model {meta['name']} downloaded successfully to {out_file}")
                         return (True, str(out_file))
 
         except Exception as e:
             logger.warning(f"Failed download from {url}: {e}")
-            if temp_file.exists():
-                temp_file.unlink(missing_ok=True)
+            temp_file.unlink(missing_ok=True)
 
-    return (False, "Không thể kết nối đến các máy chủ tải model. Vui lòng kiểm tra lại đường truyền mạng.")
+    return (False, f"Could not download {meta['name']} from all mirrors.")

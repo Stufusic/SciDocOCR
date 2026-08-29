@@ -13,8 +13,8 @@ def test_model_fetcher_fallbacks():
     assert "gpt-4o" in openai_models
 
     google_models = fetch_available_models("google", "")
-    assert "gemini-2.0-flash" in google_models
-    assert "gemini-1.5-pro" in google_models
+    assert "gemini-3.1-flash-lite" in google_models
+    assert "gemini-flash-latest" in google_models
 
     anthropic_models = fetch_available_models("anthropic", "")
     assert any("claude-3-7-sonnet" in m or "claude-3-5-sonnet" in m for m in anthropic_models)

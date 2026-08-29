@@ -470,24 +470,41 @@ class SettingsDialog(QDialog):
         card_mineru.add_widget(self.lbl_mineru_status)
         layout.addWidget(card_mineru)
 
-        # Card 3: YOLOv10 Layout Model
+        # Card 3: YOLOv8 Layout Model
         card_yolo = SettingsCard(
-            title="⚡ YOLOv10 Layout ONNX (Phân Tích Bố Cục)",
+            title="⚡ YOLOv8 Layout ONNX (Phân Tích Bố Cục)",
             subtitle="Phát hiện và cắt trực tiếp vùng biểu đồ, sơ đồ và kiến trúc mô hình."
         )
 
         yolo_box = QHBoxLayout()
-        self.lbl_yolo_status = QLabel("⚡ YOLOv10 DocLayout: Đang kiểm tra...")
+        self.lbl_yolo_status = QLabel("⚡ YOLOv8 DocLayout: Đang kiểm tra...")
         self.lbl_yolo_status.setStyleSheet("color: #38bdf8; font-size: 9.5pt; font-weight: 500;")
         yolo_box.addWidget(self.lbl_yolo_status, stretch=1)
 
-        self.btn_download_yolo = QPushButton("📥 Tải Model YOLOv10 (~60MB)")
+        self.btn_download_yolo = QPushButton("📥 Tải Model YOLOv8 (~45MB)")
         self.btn_download_yolo.setObjectName("secondaryBtn")
         self.btn_download_yolo.clicked.connect(self._download_yolo_model)
         yolo_box.addWidget(self.btn_download_yolo)
         card_yolo.add_layout(yolo_box)
-
         layout.addWidget(card_yolo)
+
+        # Card 4: UniMERNet Formula Model
+        card_unimer = SettingsCard(
+            title="🧮 UniMERNet Formula OCR (Nhận Diện Công Thức Toán)",
+            subtitle="Giải mã công thức toán học chuyên sâu sang mã nguồn LaTeX chuẩn mực."
+        )
+
+        unimer_box = QHBoxLayout()
+        self.lbl_unimer_status = QLabel("🧮 UniMERNet: Đang kiểm tra...")
+        self.lbl_unimer_status.setStyleSheet("color: #14b8a6; font-size: 9.5pt; font-weight: 500;")
+        unimer_box.addWidget(self.lbl_unimer_status, stretch=1)
+
+        self.btn_download_unimer = QPushButton("📥 Tải Model UniMERNet (~115MB)")
+        self.btn_download_unimer.setObjectName("secondaryBtn")
+        self.btn_download_unimer.clicked.connect(self._download_unimer_model)
+        unimer_box.addWidget(self.btn_download_unimer)
+        card_unimer.add_layout(unimer_box)
+        layout.addWidget(card_unimer)
         layout.addStretch()
 
         return self._wrap_in_scroll_area(page)
@@ -715,6 +732,7 @@ class SettingsDialog(QDialog):
 
         self._is_loading = False
         self._refresh_yolo_status()
+        self._refresh_unimer_status()
 
     def _switch_to_provider(self, prov: str):
         self.current_provider = prov
@@ -910,21 +928,21 @@ class SettingsDialog(QDialog):
 
     def _refresh_yolo_status(self):
         from app.utils.downloader import is_model_installed
-        if is_model_installed("yolov10_doclayout"):
-            self.lbl_yolo_status.setText("🟢 Model YOLOv10 DocLayout ONNX: Đã sẵn sàng trên CPU.")
+        if is_model_installed("yolov8_doclayout"):
+            self.lbl_yolo_status.setText("🟢 Model YOLOv8 DocLayout ONNX: Đã sẵn sàng trên CPU.")
             self.lbl_yolo_status.setStyleSheet("color: #4ade80; font-size: 9.5pt; font-weight: 500;")
-            self.btn_download_yolo.setText("🔄 Tải Lại Model")
+            self.btn_download_yolo.setText("🔄 Tải Lại YOLOv8")
         else:
             self.lbl_yolo_status.setText("⚪ Chưa tải model (Đang dùng bộ phân tích hình học CV Heuristics).")
             self.lbl_yolo_status.setStyleSheet("color: #94a3b8; font-size: 9.5pt;")
-            self.btn_download_yolo.setText("📥 Tải Model YOLOv10 (~60MB)")
+            self.btn_download_yolo.setText("📥 Tải Model YOLOv8 (~45MB)")
 
     def _download_yolo_model(self):
         import threading
         from app.utils.downloader import download_model_streaming
 
         self.btn_download_yolo.setEnabled(False)
-        self.lbl_yolo_status.setText("⏳ Đang kết nối máy chủ tải model...")
+        self.lbl_yolo_status.setText("⏳ Đang tải Model YOLOv8...")
         self.lbl_yolo_status.setStyleSheet("color: #38bdf8; font-size: 9.5pt;")
 
         def _bg_download():
@@ -932,17 +950,56 @@ class SettingsDialog(QDialog):
                 self.lbl_yolo_status.setText(status_str)
 
             ok, res_msg = download_model_streaming(
-                model_key="yolov10_doclayout",
+                model_key="yolov8_doclayout",
                 progress_callback=_prog
             )
 
             self.btn_download_yolo.setEnabled(True)
             if ok:
                 self._refresh_yolo_status()
-                QMessageBox.information(self, "Tải Model Thành Công", "✓ Đã tải xong Model YOLOv10 DocLayout ONNX vào thư mục assets/models!\nModel đã sẵn sàng hoạt động trên CPU.")
+                QMessageBox.information(self, "Tải Model Thành Công", "✓ Đã tải xong Model YOLOv8 DocLayout ONNX vào thư mục assets/models!\nModel đã sẵn sàng hoạt động trên CPU.")
             else:
                 self._refresh_yolo_status()
                 QMessageBox.warning(self, "Lỗi Tải Model", f"✗ Không thể tải model:\n{res_msg}")
+
+        thread = threading.Thread(target=_bg_download, daemon=True)
+        thread.start()
+
+    def _refresh_unimer_status(self):
+        from app.utils.downloader import is_model_installed
+        if is_model_installed("unimernet"):
+            self.lbl_unimer_status.setText("🟢 Model UniMERNet Math OCR: Đã sẵn sàng.")
+            self.lbl_unimer_status.setStyleSheet("color: #4ade80; font-size: 9.5pt; font-weight: 500;")
+            self.btn_download_unimer.setText("🔄 Tải Lại UniMERNet")
+        else:
+            self.lbl_unimer_status.setText("⚪ Chưa tải UniMERNet (Có thể tải để nhận diện công thức toán).")
+            self.lbl_unimer_status.setStyleSheet("color: #94a3b8; font-size: 9.5pt;")
+            self.btn_download_unimer.setText("📥 Tải Model UniMERNet (~115MB)")
+
+    def _download_unimer_model(self):
+        import threading
+        from app.utils.downloader import download_model_streaming
+
+        self.btn_download_unimer.setEnabled(False)
+        self.lbl_unimer_status.setText("⏳ Đang tải Model UniMERNet...")
+        self.lbl_unimer_status.setStyleSheet("color: #14b8a6; font-size: 9.5pt;")
+
+        def _bg_download():
+            def _prog(downloaded, total, speed, status_str):
+                self.lbl_unimer_status.setText(status_str)
+
+            ok, res_msg = download_model_streaming(
+                model_key="unimernet",
+                progress_callback=_prog
+            )
+
+            self.btn_download_unimer.setEnabled(True)
+            if ok:
+                self._refresh_unimer_status()
+                QMessageBox.information(self, "Tải Model Thành Công", "✓ Đã tải xong Model UniMERNet Formula OCR!\nModel đã sẵn sàng hoạt động.")
+            else:
+                self._refresh_unimer_status()
+                QMessageBox.warning(self, "Lỗi Tải Model", f"✗ Không thể tải UniMERNet:\n{res_msg}")
 
         thread = threading.Thread(target=_bg_download, daemon=True)
         thread.start()

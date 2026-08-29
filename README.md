@@ -9,7 +9,7 @@
 [![Release](https://img.shields.io/github/v/release/Stufusic/SciDocOCR?color=blue&logo=github&label=Release%20v1.0.1)](https://github.com/Stufusic/SciDocOCR/releases)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![PySide6](https://img.shields.io/badge/GUI-PySide6%20(Qt6)-green?logo=qt&logoColor=white)](https://pypi.org/project/PySide6/)
-[![YOLOv10m ONNX](https://img.shields.io/badge/Vision-YOLOv10m%20ONNX%20(CPU)-orange?logo=onnx&logoColor=white)](https://onnxruntime.ai/)
+[![YOLOv8 & UniMERNet](https://img.shields.io/badge/Vision-YOLOv8%20%26%20UniMERNet%20(CPU)-orange?logo=onnx&logoColor=white)](https://onnxruntime.ai/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Tests](https://img.shields.io/badge/Unit%20Tests-48%2F48%20Passed-brightgreen)](tests/)
 
@@ -22,10 +22,11 @@
 ## 🚀 Điểm Mới Trong Phiên Bản v1.0.1
 
 * ⚡ **Quy Trình Dự Án & Xử Lý Tự Động Hàng Loạt ("Process All")**: Nút **⚡ Process All** xuất hiện theo ngữ cảnh khi mở Thư mục Dự Án (`Open Project`). Hệ thống tự động quét toàn bộ tệp PDF, cho phép chọn vị trí xuất, sau đó tự động nạp tuần tự từng tài liệu từ trên xuống, bóc tách OCR và xuất trọn bộ vào thư mục riêng mang tên tài liệu đó rồi tự động nạp tài liệu tiếp theo.
+* 👁️ **Động Cơ Thị Giác YOLOv8 Layout & UniMERNet Math OCR**: Định vị phân vùng bố cục chuẩn xác và giải mã công thức toán học chuyên sâu sang LaTeX chuẩn.
 * 📦 **Module Tiện Ích Dùng Chung Chuẩn Hóa (`app/utils/common.py`)**: Tối ưu hóa toàn bộ codebase, gom các hàm xử lý ảnh độ phân giải cao cho Vision AI/LM Studio (`optimize_image_for_ai`), mã hóa Base64 Data URI, dọn rác và bộ nhớ đệm (`purge_directory`, `sanitize_filename`), lọc triệt để suy nghĩ nội bộ (`strip_thought_content`), băm SHA-256 và logging.
 * 🔄 **Cơ Chế Dự Phòng & Tự Động Xoay Vòng Model AI (Dynamic Failover)**: Tự động phát hiện model AI gặp sự cố (timeout, rate-limit, lỗi mạng) để chuyển sang model dự phòng ngay lập tức và ghi nhớ model hoạt động tốt nhất.
 * 🌐 **Dịch Thuật Markdown Siêu Tốc 1500 Ký Tự**: Hỗ trợ chia nhỏ văn bản theo từng khối ~1500 ký tự và stream trực tiếp lên giao diện, hỗ trợ cả **Google Translate** miễn phí và **AI LLM** với danh sách ngôn ngữ hiển thị đầy đủ tên quốc gia.
-* 📤 **Xuất Trọn Bộ Tài Liệu (Dedicated Export Bundle)**: Tùy chọn vị trí xuất bất kỳ, gom toàn bộ asset chuyển đổi (`.md`, `.tex`, `.pdf`, `_ast.json`) và thư mục ảnh `images/` vào một thư mục chuyên biệt.
+* 📤 **Xuất Trọn Bộ Tài Liệu (Dedicated Export Bundle)**: Tùy chọn vị trí xuất bất kỳ, gom toàn bộ asset chuyển đổi (`.md`, `.tex`, `.pdf`, `_ast.json`) và thư mục ảnh `images/`, `pages/`, `blocks/` vào một thư mục chuyên biệt.
 
 ---
 
@@ -50,7 +51,8 @@ Bạn có thể lựa chọn 1 trong 3 cách sau để bắt đầu:
 3. Giao diện **Setup Wizard / Smart Launcher** sẽ tự động mở lên với các tùy chọn tiện ích:
    - **`📦 Cài đặt CPU (Không cần GPU)`**: Dành cho laptop văn phòng, máy không có card rời (cài đặt siêu tốc trong vài giây).
    - **`⚡ Cài đặt GPU (MinerU CUDA)`**: Dành cho máy tính có card đồ họa rời NVIDIA.
-   - **`📥 Tải Model YOLOv10 (~60MB)`**: Tải model thị giác SOTA bóc tách bố cục và công thức toán trực tiếp từ CDN/HuggingFace về máy.
+   - **`📥 Tải YOLOv8 Layout (~45MB)`**: Tải model YOLOv8 DocLayout bóc tách phân vùng bố cục trực tiếp từ CDN/HuggingFace về máy.
+   - **`📥 Tải UniMERNet Math (~115MB)`**: Tải model UniMERNet nhận diện công thức toán học chuyên sâu.
    - **`🚀 Khởi chạy SciDoc OCR`**: Tự động tạo biểu tượng **Desktop Shortcut** và mở ứng dụng ngay!
 
 ---
@@ -60,7 +62,7 @@ Bạn có thể lựa chọn 1 trong 3 cách sau để bắt đầu:
 
 1. Tải file `SciDocOCR_Launcher.exe` từ [GitHub Releases](https://github.com/Stufusic/SciDocOCR/releases).
 2. Mở file để khởi chạy Setup Wizard.
-3. Bấm **Tải Model YOLOv10 ONNX** để chuẩn bị động cơ thị giác offline, sau đó bấm **Khởi chạy**.
+3. Bấm **Tải YOLOv8 Layout** & **UniMERNet Math**, sau đó bấm **Khởi chạy**.
 
 ---
 
@@ -90,8 +92,11 @@ python -m app.main
 Nếu máy tính của bạn là **Laptop văn phòng, PC chỉ dùng CPU Intel / AMD hoặc card đồ họa onboard (iGPU)**, bạn **hoàn toàn yên tâm sử dụng 100% đầy đủ các tính năng** của SciDoc OCR Studio nhờ kiến trúc phân tầng tối ưu:
 
 ### 🌟 Các Tính Năng Hoạt Động Hoàn Hảo Trên Máy CPU:
-1. **⚡ Định Vị Bố Cục Bằng YOLOv10m ONNX Trên CPU**:
-   - Sử dụng kiến trúc **NMS-Free** của YOLOv10m kết hợp `onnxruntime` (`CPUExecutionProvider`) để phân vùng Layout (Section, Heading, Paragraph, Table, Formula) với tốc độ siêu nhanh **~25ms – 40ms / trang**.
+1. **⚡ Định Vị Bố Cục Bằng YOLOv8 ONNX Trên CPU**:
+   - Sử dụng mô hình **YOLOv8 DocLayout** kết hợp `onnxruntime` (`CPUExecutionProvider`) để phân vùng Layout (Section, Heading, Paragraph, Table, Formula) với tốc độ siêu nhanh **~20ms – 35ms / trang**.
+   - Nếu chưa tải file ONNX, hệ thống tự động fallback sang thuật toán **CV & Typography Heuristic Engine** có sẵn trong app $\rightarrow$ không bao giờ bị lỗi thiếu file.
+2. **🤖 Bóc Tách OCR Chuyên Sâu Bằng VLM (Online API hoặc Local Model)**:
+   - Các khung Section được tối ưu hóa ảnh và chuyển tới mô hình Vision-Language (Google Gemini, OpenAI GPT-4o, Claude hoặc LM Studio Local) để **chỉ tập trung OCR giải mã nội dung và công thức LaTeX** trong từng khung Section đó.
    - Nếu chưa tải file ONNX, hệ thống tự động fallback sang thuật toán **CV & Typography Heuristic Engine** có sẵn trong app $\rightarrow$ không bao giờ bị lỗi thiếu file.
 2. **🤖 Bóc Tách OCR Chuyên Sâu Bằng VLM (Online API hoặc Local Model)**:
    - Các khung Section được tối ưu hóa ảnh và chuyển tới mô hình Vision-Language (Google Gemini, OpenAI GPT-4o, Claude hoặc LM Studio Local) để **chỉ tập trung OCR giải mã nội dung và công thức LaTeX** trong từng khung Section đó.
@@ -186,13 +191,13 @@ flowchart TD
 
     subgraph DocumentOCR ["2. Bóc Tách Bố Cục & OCR Từng Tài Liệu"]
         S --> T[Nạp PDF tuần tự]
-        T --> U[YOLOv10m ONNX CPU: Định vị BBox & Layout]
-        U --> V[VLM Vision AI / LM Studio: Bóc tách LaTeX & Markdown]
+        T --> U[YOLOv8 ONNX CPU: Định vị BBox & Layout]
+        U --> V[UniMERNet & VLM AI: Bóc tách LaTeX & Markdown]
         V --> W[Dọn dẹp RAM & Giải phóng bộ đệm]
     end
 
     subgraph AutoExport ["3. Tự Động Xuất & Chuyển Tiếp"]
-        W --> X[Xuất .md, .tex, .pdf, images/ vào Folder Tài Liệu]
+        W --> X[Xuất .md, .tex, .pdf, pages/, blocks/ vào Folder Tài Liệu]
         X --> Y{Còn file trong hàng đợi?}
         Y -- Có --> T
         Y -- Hết --> Z[Thông báo hoàn tất & Nút Mở Thư Mục]
@@ -210,7 +215,9 @@ Trong giao diện **`⚙ Settings`**:
 - **MinerU Engine (Local Server & CLI)**:
   - Cổng Server Local mặc định: `http://127.0.0.1:8000` (có nút **🔌 Test Port** kiểm tra tức thì).
   - Hoặc chọn đường dẫn CLI (`magic-pdf.exe` / `mineru.exe`) bằng nút **📁 Browse** hoặc **🔍 Auto-Detect**.
-- **Model YOLOv10 ONNX**: Hiển thị trạng thái model trên CPU và nút **📥 Tải Model YOLOv10 (~60MB)** trực tiếp từ CDN.
+- **Model YOLOv8 & UniMERNet**: Hiển thị trạng thái model trên CPU và các nút tải trực tiếp từ CDN:
+  - **📥 Tải Model YOLOv8 (~45MB)**: Bóc tách phân vùng bố cục văn bản, biểu đồ, bảng biểu.
+  - **📥 Tải Model UniMERNet (~115MB)**: Giải mã công thức toán học chuyên sâu sang LaTeX.
 
 ### 2. Nhóm Động Cơ Đám Mây (🌐 Online Cloud API Engine):
 - Hỗ trợ nhập và lưu trữ độc lập khóa API cho từng nhà cung cấp: **Google Gemini**, **OpenAI**, **Anthropic Claude**, **OpenRouter**, **Custom OpenAI-Compatible API**.

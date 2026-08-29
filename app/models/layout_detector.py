@@ -264,6 +264,101 @@ class DocumentLayoutDetector:
 
         return routed_blocks
 
+    def sort_regions_reading_order(self, regions: List[LayoutRegion], page_width: float = 600.0) -> List[LayoutRegion]:
+        """
+        Sorts layout regions in natural human reading order:
+        - Spanning blocks (Title, Abstract) are placed at the top.
+        - Two-column content is ordered Left Column (top-down) then Right Column (top-down).
+        - Single-column content is sorted top-to-bottom.
+        """
+        if not regions:
+            return []
+
+        mid_x = page_width / 2.0
+        
+        # Check if two-column layout exists
+        left_count = sum(1 for r in regions if r.bbox.x1 <= mid_x + 30 and r.bbox.width < page_width * 0.65)
+        right_count = sum(1 for r in regions if r.bbox.x0 >= mid_x - 30 and r.bbox.width < page_width * 0.65)
+        is_two_column = (left_count >= 2 and right_count >= 2)
+
+        if not is_two_column:
+            return sorted(regions, key=lambda r: (r.bbox.y0, r.bbox.x0))
+
+        spanning_top = []
+        left_col = []
+        right_col = []
+        spanning_bottom = []
+
+        for r in regions:
+            if r.bbox.width >= page_width * 0.65:
+                if r.bbox.y0 < page_width * 0.45:
+                    spanning_top.append(r)
+                else:
+                    spanning_bottom.append(r)
+            elif (r.bbox.x0 + r.bbox.x1) / 2.0 < mid_x:
+                left_col.append(r)
+            else:
+                right_col.append(r)
+
+        spanning_top.sort(key=lambda r: r.bbox.y0)
+        left_col.sort(key=lambda r: r.bbox.y0)
+        right_col.sort(key=lambda r: r.bbox.y0)
+        spanning_bottom.sort(key=lambda r: r.bbox.y0)
+
+        return spanning_top + left_col + right_col + spanning_bottom
+
+    def detect_and_crop_regions(
+        self,
+        pil_image: Image.Image,
+        page_num: int = 1,
+        image_dir: Optional[Path] = None,
+        padding: int = 6
+    ) -> List[Tuple[LayoutRegion, bytes, Optional[str]]]:
+        """
+        Runs YOLO to detect layout bounding boxes, crops each region from the page image,
+        and returns a list of (region, crop_bytes, saved_image_rel_path).
+        Figures are automatically saved to disk directly.
+        """
+        regions = self.detect_regions_from_image(pil_image)
+        if not regions:
+            return []
+
+        sorted_regions = self.sort_regions_reading_order(regions, page_width=float(pil_image.width))
+        results: List[Tuple[LayoutRegion, bytes, Optional[str]]] = []
+        import io
+        fig_counter = 0
+
+        for r in sorted_regions:
+            w, h = r.bbox.width, r.bbox.height
+            if w < 10 or h < 10:
+                continue
+
+            x0 = max(0, int(r.bbox.x0) - padding)
+            y0 = max(0, int(r.bbox.y0) - padding)
+            x1 = min(pil_image.width, int(r.bbox.x1) + padding)
+            y1 = min(pil_image.height, int(r.bbox.y1) + padding)
+
+            if x1 <= x0 or y1 <= y0:
+                continue
+
+            cropped = pil_image.crop((x0, y0, x1, y1))
+            buf = io.BytesIO()
+            cropped.save(buf, format="PNG")
+            crop_bytes = buf.getvalue()
+
+            saved_rel_path = None
+            if r.label == "figure":
+                fig_counter += 1
+                fig_filename = f"fig_p{page_num}_{fig_counter}.png"
+                if image_dir:
+                    image_dir.mkdir(parents=True, exist_ok=True)
+                    cropped.save(image_dir / fig_filename, "PNG")
+                saved_rel_path = f"images/{fig_filename}"
+
+            results.append((r, crop_bytes, saved_rel_path))
+
+        return results
+
     def extract_figures_from_page(
         self,
         preview_image_path: Optional[str],

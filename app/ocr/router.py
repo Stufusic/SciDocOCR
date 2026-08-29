@@ -1,18 +1,24 @@
-"""OCR Router: dispatches to Online AI Vision/Markdown reconstruction or Local Scientific OCR."""
+"""OCR Router: dispatches to YOLO Crop-guided Vision OCR or Local Scientific OCR."""
 
+import io
 from typing import List, Optional, Any
 from pathlib import Path
+from PIL import Image
+
 from app.ocr.base import BaseOCR
 from app.ocr.local_ocr import LocalOCR
 from app.markdown.parser import MarkdownParser
 from app.models.layout_detector import DocumentLayoutDetector
-from app.core.blocks import BaseBlock, ParagraphBlock, FormulaBlock, HeadingBlock, BlockType
-from app.utils.logging import get_logger
+from app.core.blocks import (
+    BaseBlock, ParagraphBlock, FormulaBlock, HeadingBlock,
+    TableBlock, FigureBlock, CaptionBlock, BlockType, BoundingBox
+)
+from app.utils import get_logger, clean_latex_math
 
 logger = get_logger("OCRRouter")
 
 class OCRRouter:
-    """Routes OCR tasks according to user mode (Offline / Online / Auto)."""
+    """Routes OCR tasks with YOLO bounding-box crop extraction and unified LLM transcription."""
 
     def __init__(
         self,
@@ -39,62 +45,149 @@ class OCRRouter:
         page_num = page_index + 1
         logger.info(f"Processing page {page_num} with OCR mode: {self.mode}")
 
-        # Local OCR fallback engine
         local_engine = LocalOCR(page_width, page_height)
 
         # -------------------------------------------------------------
-        # 1. YOLO FIGURE & IMAGE REGION ISOLATION
-        # (Figures/Charts are cropped directly to images and not processed as text)
+        # 1. LOAD PAGE IMAGE (For YOLO Bounding Box Detection & Cropping)
         # -------------------------------------------------------------
-        if figure_blocks is None:
-            figure_blocks = self.layout_detector.extract_figures_from_page(
-                preview_image_path=preview_image_path,
-                page_num=page_num,
-                image_dir=image_dir
-            )
-        if figure_blocks:
-            logger.info(f"Page {page_num}: YOLO isolated {len(figure_blocks)} figure/chart image(s) for direct image rendering.")
+        pil_img = None
+        if preview_image_path and Path(preview_image_path).exists():
+            try:
+                pil_img = Image.open(preview_image_path)
+            except Exception:
+                pil_img = None
+
+        if pil_img is None and image_bytes:
+            try:
+                pil_img = Image.open(io.BytesIO(image_bytes))
+            except Exception:
+                pil_img = None
 
         # -------------------------------------------------------------
-        # 2. AI-POWERED EXTRACTION (Local Model mineru / Online AI)
+        # 2. YOLO BOUNDING BOX CROPPING & TARGETED LLM VISION OCR
         # -------------------------------------------------------------
-        if self.ai_router is not None:
+        if self.ai_router is not None and pil_img is not None:
             engine_name = "Local Model" if self.mode == "local_only" else "Online AI"
             try:
-                logger.info(f"Page {page_num}: Sending high-res page image to {engine_name} Vision OCR for structured text, math & tables...")
+                # Run YOLO detection and crop each region with padding in reading order
+                crop_results = self.layout_detector.detect_and_crop_regions(
+                    pil_img, page_num=page_num, image_dir=image_dir, padding=6
+                )
+
+                if crop_results:
+                    logger.info(f"Page {page_num}: YOLO detected {len(crop_results)} bounding boxes. Transcribing cropped regions via {engine_name}...")
+                    processed_blocks: List[BaseBlock] = []
+
+                    for idx, (region, crop_bytes, saved_img_path) in enumerate(crop_results, 1):
+                        lbl = region.label.lower()
+                        bbox = region.bbox
+                        conf = region.confidence
+
+                        # A. Figure: Direct image path (no LLM call needed!)
+                        if lbl == "figure":
+                            img_path = saved_img_path or f"images/fig_p{page_num}_{idx}.png"
+                            processed_blocks.append(FigureBlock(
+                                id=f"fig_p{page_num}_{idx}",
+                                bbox=bbox,
+                                source_page=page_num,
+                                confidence=conf,
+                                image_path=img_path,
+                                caption=f"Figure on page {page_num}"
+                            ))
+
+                        # B. Formula: Targeted LaTeX Math Transcription
+                        elif lbl == "formula":
+                            latex_raw = self.ai_router.ocr_crop_to_markdown(crop_bytes=crop_bytes, block_type="formula")
+                            clean_math = clean_latex_math(latex_raw) or latex_raw
+                            if clean_math:
+                                processed_blocks.append(FormulaBlock(
+                                    id=f"formula_p{page_num}_{idx}",
+                                    bbox=bbox,
+                                    source_page=page_num,
+                                    confidence=conf,
+                                    latex=clean_math,
+                                    is_display=True
+                                ))
+
+                        # C. Table: Targeted Markdown Table Transcription
+                        elif lbl == "table":
+                            table_md = self.ai_router.ocr_crop_to_markdown(crop_bytes=crop_bytes, block_type="table")
+                            if table_md:
+                                processed_blocks.append(TableBlock(
+                                    id=f"table_p{page_num}_{idx}",
+                                    bbox=bbox,
+                                    source_page=page_num,
+                                    confidence=conf,
+                                    markdown_table=table_md
+                                ))
+
+                        # D. Section Title / Heading
+                        elif lbl in ("title", "section-header"):
+                            heading_text = self.ai_router.ocr_crop_to_markdown(crop_bytes=crop_bytes, block_type="text")
+                            clean_heading = heading_text.lstrip("#").strip()
+                            level = 1 if bbox.y0 < (page_height * 0.3) else 2
+                            if clean_heading:
+                                processed_blocks.append(HeadingBlock(
+                                    id=f"heading_p{page_num}_{idx}",
+                                    bbox=bbox,
+                                    source_page=page_num,
+                                    confidence=conf,
+                                    level=level,
+                                    text=clean_heading
+                                ))
+
+                        # E. Text / Paragraph / Caption
+                        else:
+                            sec_text = self.ai_router.ocr_crop_to_markdown(crop_bytes=crop_bytes, block_type="text")
+                            if sec_text:
+                                parsed = self.markdown_parser.parse_page_blocks(sec_text, page_number=page_num)
+                                if parsed:
+                                    for pb in parsed:
+                                        pb.bbox = bbox
+                                        processed_blocks.append(pb)
+                                else:
+                                    processed_blocks.append(ParagraphBlock(
+                                        id=f"p_p{page_num}_{idx}",
+                                        bbox=bbox,
+                                        source_page=page_num,
+                                        confidence=conf,
+                                        text=sec_text
+                                    ))
+
+                    if processed_blocks:
+                        logger.info(f"Page {page_num}: Successfully assembled {len(processed_blocks)} blocks from YOLO cropped regions.")
+                        return processed_blocks
+
+            except Exception as e:
+                logger.warning(f"Page {page_num}: YOLO crop-guided extraction encountered an issue ({e}). Trying fallback...")
+
+        # -------------------------------------------------------------
+        # 3. WHOLE-PAGE VISION OCR (Fallback when YOLO has no boxes)
+        # -------------------------------------------------------------
+        if self.ai_router is not None and image_bytes:
+            try:
+                engine_name = "Local Model" if self.mode == "local_only" else "Online AI"
+                logger.info(f"Page {page_num}: Running fallback page-level Vision OCR via {engine_name}...")
                 
-                # Prepare raw page text hint (filter matrix noise)
-                text_parts = []
-                matrix_noise = {"<pad>", "<eos>", "<unk>", "-", ".", ","}
-                for b in blocks:
-                    t = (getattr(b, "text", "") or getattr(b, "raw_text", "") or "").strip()
-                    if t and t.lower() not in matrix_noise and len(t) > 1:
-                        text_parts.append(t)
-                raw_page_text = "\n\n".join(text_parts)
-                if len(raw_page_text) > 6000:
-                    raw_page_text = raw_page_text[:6000]
+                # Raw text hint
+                text_parts = [
+                    (getattr(b, "text", "") or getattr(b, "raw_text", "") or "").strip()
+                    for b in blocks if len(getattr(b, "text", "") or "") > 1
+                ]
+                raw_page_text = "\n\n".join(text_parts)[:4000]
 
-                # Call Vision AI engine (Gemini Vision / GPT-4o / Qwen2-VL) with high-res image
-                if image_bytes:
-                    md_result = self.ai_router.ocr_image_to_markdown(image_bytes=image_bytes, raw_text_hint=raw_page_text)
-                else:
-                    md_result = self.ai_router.document_to_markdown(raw_page_text)
-
+                md_result = self.ai_router.ocr_image_to_markdown(image_bytes=image_bytes, raw_text_hint=raw_page_text)
                 if md_result and len(md_result.strip()) > 10:
                     parsed_blocks = self.markdown_parser.parse_page_blocks(md_result, page_number=page_num)
                     if parsed_blocks:
-                        logger.info(f"Page {page_num}: Successfully extracted {len(parsed_blocks)} blocks via {engine_name} Vision OCR.")
-                        # Merge figure blocks for direct rendering if present
                         if figure_blocks:
-                            combined = list(parsed_blocks)
-                            combined.extend(figure_blocks)
-                            return combined
+                            parsed_blocks.extend(figure_blocks)
                         return parsed_blocks
             except Exception as e:
-                logger.warning(f"Page {page_num}: {engine_name} extraction failed ({e}). Falling back to Local OCR Engine.")
+                logger.warning(f"Page {page_num}: Page-level Vision OCR fallback failed: {e}")
 
         # -------------------------------------------------------------
-        # 3. LOCAL OCR PROCESSING (Layout-First + Formula + Table + Chart Filter)
+        # 4. LOCAL OCR PROCESSING (CV + Heuristics Fallback)
         # -------------------------------------------------------------
         return local_engine.process_page_blocks(
             blocks=blocks,

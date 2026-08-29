@@ -2,15 +2,13 @@
 
 import re
 import httpx
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from app.ai.base import AIProvider
-from app.ai.prompts import PROMPT_PROOFREAD_OCR, PROMPT_FORMULA_REPAIR, PROMPT_TRANSLATION, PROMPT_DOCUMENT_TO_MARKDOWN
 from app.core.exceptions import AIProviderError
 from app.utils import get_logger, strip_thought_content, optimize_image_for_ai, image_bytes_to_base64
 
 logger = get_logger("OnlineProvider")
 
-# Curated fallback model cascades for rapid failover when quota is exceeded (429) or call errors
 FALLBACK_CASCADE: Dict[str, List[str]] = {
     "google": [
         "gemini-3.5-flash",
@@ -59,7 +57,6 @@ def get_model_cascade_for_provider(provider: str, configured_model: str) -> List
         candidates.append(configured)
     candidates.extend(base_cascade)
     
-    # Deduplicate while preserving order
     result = []
     for m in candidates:
         if m and m not in result:
@@ -67,7 +64,7 @@ def get_model_cascade_for_provider(provider: str, configured_model: str) -> List
     return result
 
 class OnlineProvider(AIProvider):
-    """Integrates with Online AI providers with automatic rapid failover across model cascades."""
+    """Integrates with Online AI providers through a single unified `generate` method with failover."""
 
     def __init__(
         self,
@@ -91,35 +88,53 @@ class OnlineProvider(AIProvider):
         return bool(self.api_key and self.api_key.strip())
 
     def _get_ordered_models_to_try(self) -> List[str]:
-        """Returns models to try with previously failed models placed at the end of the line."""
+        """Returns models to try with previously failed models placed at the end."""
         all_candidates = get_model_cascade_for_provider(self.provider, self.model_name)
         working = [m for m in all_candidates if m not in self._failed_models]
         failed = [m for m in all_candidates if m in self._failed_models]
         return working + failed
 
     def _on_model_success(self, model_cand: str):
-        """Removes model from failed set and rotates active model to working one for subsequent calls."""
+        """Rotates active model to working one and clears failure mark."""
         self._failed_models.discard(model_cand)
         if self.model_name != model_cand:
             logger.info(f"OnlineProvider: Successfully rotated active model from '{self.model_name}' to '{model_cand}'.")
             self.model_name = model_cand
 
     def _on_model_failure(self, model_cand: str, err_desc: str):
-        """Marks model as failed to skip it on future calls until working models are exhausted."""
+        """Marks model as failed to skip it on future calls."""
         self._failed_models.add(model_cand)
-        logger.warning(f"OnlineProvider: Model '{model_cand}' failed ({err_desc}). Deprioritizing for future calls...")
+        logger.warning(f"OnlineProvider: Model '{model_cand}' failed ({err_desc}). Deprioritizing...")
 
-    def complete(self, prompt: str, system_prompt: str = "", temperature: float = 0.1, max_tokens: int = 2048) -> str:
+    def generate(
+        self,
+        prompt: str = "",
+        system_prompt: str = "",
+        image_bytes: Optional[bytes] = None,
+        temperature: float = 0.1,
+        max_tokens: int = 4096
+    ) -> str:
+        """
+        Unified single API call handling text, image vision, and system prompt
+        with automatic cascade failover across all model candidates.
+        """
         if not self.api_key:
             raise AIProviderError(f"{self.provider.capitalize()} API key is missing.")
 
+        # Optimize image if provided
+        base64_img = None
+        mime_type = "image/jpeg"
+        if image_bytes:
+            opt_bytes, mime_type = optimize_image_for_ai(image_bytes, max_dim=1800, quality=88)
+            base64_img = image_bytes_to_base64(opt_bytes)
+
         models_to_try = self._get_ordered_models_to_try()
-        fast_timeout = min(self.timeout, 22.0)  # Rapid failover timeout per model
+        fast_timeout = min(self.timeout, 25.0)
         last_error = "Unknown error"
 
-        for model_idx, model_cand in enumerate(models_to_try):
+        for model_cand in models_to_try:
             # -------------------------------------------------------------
-            # 1. ANTHROPIC CLAUDE API (/v1/messages)
+            # 1. ANTHROPIC CLAUDE API
             # -------------------------------------------------------------
             if self.provider == "anthropic":
                 headers = {
@@ -127,9 +142,24 @@ class OnlineProvider(AIProvider):
                     "anthropic-version": "2023-06-01",
                     "Content-Type": "application/json"
                 }
+                if base64_img:
+                    user_content = [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": mime_type,
+                                "data": base64_img
+                            }
+                        },
+                        {"type": "text", "text": prompt or "Process this image."}
+                    ]
+                else:
+                    user_content = prompt
+
                 payload = {
                     "model": model_cand,
-                    "messages": [{"role": "user", "content": prompt}],
+                    "messages": [{"role": "user", "content": user_content}],
                     "max_tokens": max_tokens,
                     "temperature": temperature
                 }
@@ -144,7 +174,6 @@ class OnlineProvider(AIProvider):
                             content_list = data.get("content", [])
                             if content_list:
                                 self._on_model_success(model_cand)
-                                from app.utils.thought_cleaner import strip_thought_content
                                 return strip_thought_content(content_list[0].get("text", "").strip())
                         elif resp.status_code == 429:
                             self._on_model_failure(model_cand, "Rate limit 429")
@@ -159,81 +188,52 @@ class OnlineProvider(AIProvider):
                     continue
 
             # -------------------------------------------------------------
-            # 2. GOOGLE GEMINI (OpenAI endpoint + Native REST fallback)
+            # 2. GOOGLE GEMINI API (Native REST generateContent)
             # -------------------------------------------------------------
             elif self.provider == "google":
-                # Step A: Try OpenAI-compatible endpoint
-                openai_gemini_url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
-                headers = {
-                    "Authorization": f"Bearer {self.api_key}",
-                    "x-goog-api-key": self.api_key,
-                    "Content-Type": "application/json"
-                }
-                messages = []
-                if system_prompt:
-                    messages.append({"role": "system", "content": system_prompt})
-                messages.append({"role": "user", "content": prompt})
-
-                payload = {
-                    "model": model_cand,
-                    "messages": messages,
-                    "temperature": temperature,
-                    "max_tokens": max_tokens
-                }
-
-                try:
-                    with httpx.Client(timeout=fast_timeout) as client:
-                        resp = client.post(openai_gemini_url, json=payload, headers=headers)
-                        if resp.status_code == 200:
-                            data = resp.json()
-                            choices = data.get("choices", [])
-                            if choices:
-                                raw_res = choices[0].get("message", {}).get("content", "").strip()
-                                self._on_model_success(model_cand)
-                                from app.utils.thought_cleaner import strip_thought_content
-                                return strip_thought_content(raw_res)
-                        elif resp.status_code == 429:
-                            self._on_model_failure(model_cand, "Gemini quota 429")
-                            continue
-                except Exception:
-                    pass
-
-                # Step B: Native Gemini REST API (generateContent)
                 native_endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model_cand}:generateContent?key={self.api_key}"
                 native_headers = {
                     "x-goog-api-key": self.api_key,
                     "Content-Type": "application/json"
                 }
-                native_payload = {
-                    "contents": [
-                        {
-                            "role": "user",
-                            "parts": [{"text": f"{system_prompt}\n\n{prompt}" if system_prompt else prompt}]
+                parts = []
+                if base64_img:
+                    parts.append({
+                        "inlineData": {
+                            "mimeType": mime_type,
+                            "data": base64_img
                         }
-                    ],
+                    })
+                parts.append({"text": prompt or "Process the input."})
+
+                native_payload = {
+                    "contents": [{"role": "user", "parts": parts}],
                     "generationConfig": {
                         "temperature": temperature,
                         "maxOutputTokens": max_tokens
                     }
                 }
+                if system_prompt:
+                    native_payload["systemInstruction"] = {
+                        "parts": [{"text": system_prompt}]
+                    }
 
                 try:
                     with httpx.Client(timeout=fast_timeout) as client:
-                        resp2 = client.post(native_endpoint, json=native_payload, headers=native_headers)
-                        if resp2.status_code == 200:
-                            data2 = resp2.json()
-                            candidates = data2.get("candidates", [])
+                        resp = client.post(native_endpoint, json=native_payload, headers=native_headers)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            candidates = data.get("candidates", [])
                             if candidates:
-                                parts = candidates[0].get("content", {}).get("parts", [])
-                                if parts:
+                                parts_out = candidates[0].get("content", {}).get("parts", [])
+                                if parts_out:
                                     self._on_model_success(model_cand)
-                                    from app.utils.thought_cleaner import strip_thought_content
-                                    return strip_thought_content(parts[0].get("text", "").strip())
-                        elif resp2.status_code == 429:
-                            self._on_model_failure(model_cand, "Gemini Native quota 429")
+                                    return strip_thought_content(parts_out[0].get("text", "").strip())
+                        elif resp.status_code == 429:
+                            self._on_model_failure(model_cand, "Gemini rate limit 429")
                             continue
                         else:
-                            last_error = f"Gemini error {resp2.status_code}: {resp2.text[:200]}"
+                            last_error = f"Gemini error {resp.status_code}: {resp.text[:200]}"
                             self._on_model_failure(model_cand, last_error)
                             continue
                 except Exception as e:
@@ -242,7 +242,7 @@ class OnlineProvider(AIProvider):
                     continue
 
             # -------------------------------------------------------------
-            # 3. OPENAI, OPENCODE, OPENROUTER, CUSTOM
+            # 3. OPENAI, OPENROUTER, OPENCODE, CUSTOM API (/chat/completions)
             # -------------------------------------------------------------
             else:
                 headers = {
@@ -252,7 +252,15 @@ class OnlineProvider(AIProvider):
                 messages = []
                 if system_prompt:
                     messages.append({"role": "system", "content": system_prompt})
-                messages.append({"role": "user", "content": prompt})
+
+                if base64_img:
+                    user_content = [
+                        {"type": "text", "text": prompt or "Process this image."},
+                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_img}"}}
+                    ]
+                    messages.append({"role": "user", "content": user_content})
+                else:
+                    messages.append({"role": "user", "content": prompt})
 
                 payload = {
                     "model": model_cand,
@@ -272,7 +280,6 @@ class OnlineProvider(AIProvider):
                             if choices:
                                 raw_res = choices[0].get("message", {}).get("content", "").strip()
                                 self._on_model_success(model_cand)
-                                from app.utils.thought_cleaner import strip_thought_content
                                 return strip_thought_content(raw_res)
                         elif resp.status_code == 429:
                             self._on_model_failure(model_cand, "Rate limit 429")
@@ -287,173 +294,3 @@ class OnlineProvider(AIProvider):
                     continue
 
         raise AIProviderError(f"All models for {self.provider.capitalize()} failed. Last error: {last_error}")
-
-    def correct_text(self, text: str) -> str:
-        return self.complete(prompt=text, system_prompt=PROMPT_PROOFREAD_OCR)
-
-    def repair_formula(self, latex: str, issues: List[str]) -> str:
-        issues_str = "\n".join(f"- {issue}" for issue in issues)
-        prompt = f"Formula:\n```latex\n{latex}\n```\n\nDetected issues:\n{issues_str}"
-        return self.complete(prompt=prompt, system_prompt=PROMPT_FORMULA_REPAIR)
-
-    def translate_text(self, text: str, source_lang: str = "en", target_lang: str = "vi") -> str:
-        sys_prompt = PROMPT_TRANSLATION.format(source_lang=source_lang, target_lang=target_lang)
-        return self.complete(prompt=text, system_prompt=sys_prompt)
-
-    def document_to_markdown(self, page_content: str) -> str:
-        return self.complete(prompt=page_content, system_prompt=PROMPT_DOCUMENT_TO_MARKDOWN, max_tokens=4096)
-
-    def ocr_image_to_markdown(self, image_bytes: bytes, raw_text_hint: str = "") -> str:
-        """Sends high-resolution image to Vision AI for complete scientific Markdown transcription."""
-        if not image_bytes:
-            return self.document_to_markdown(raw_text_hint)
-
-        # Optimize image for fast network upload & vision API decoding
-        optimized_bytes, mime_type = optimize_image_for_ai(image_bytes, max_dim=1800, quality=88)
-        base64_img = image_bytes_to_base64(optimized_bytes)
-        from app.ai.prompts import PROMPT_VISION_OCR_PAGE
-
-        # Multi-model cascade for Vision OCR with failed models placed at the end
-        models_to_try = self._get_ordered_models_to_try()
-        fast_timeout = min(self.timeout, 25.0)
-
-        # 1. Google Gemini Vision API (with automatic cascade failover across all Gemini models)
-        if self.provider == "google":
-            for gemini_model in models_to_try:
-                try:
-                    native_endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={self.api_key}"
-                    native_headers = {
-                        "x-goog-api-key": self.api_key,
-                        "Content-Type": "application/json"
-                    }
-                    payload = {
-                        "contents": [
-                            {
-                                "role": "user",
-                                "parts": [
-                                    {"text": PROMPT_VISION_OCR_PAGE},
-                                    {
-                                        "inlineData": {
-                                            "mimeType": mime_type,
-                                            "data": base64_img
-                                        }
-                                    }
-                                ]
-                            }
-                        ],
-                        "generationConfig": {
-                            "temperature": 0.1,
-                            "maxOutputTokens": 4096
-                        }
-                    }
-                    with httpx.Client(timeout=fast_timeout) as client:
-                        resp = client.post(native_endpoint, json=payload, headers=native_headers)
-                        if resp.status_code == 200:
-                            data = resp.json()
-                            candidates = data.get("candidates", [])
-                            if candidates:
-                                parts = candidates[0].get("content", {}).get("parts", [])
-                                if parts:
-                                    self._on_model_success(gemini_model)
-                                    from app.utils.thought_cleaner import strip_thought_content
-                                    return strip_thought_content(parts[0].get("text", "").strip())
-                        elif resp.status_code == 429:
-                            self._on_model_failure(gemini_model, "Gemini Vision rate limit 429")
-                            continue
-                except Exception as e:
-                    self._on_model_failure(gemini_model, str(e))
-                    continue
-
-        # 2. OpenAI / OpenRouter / Custom Vision API
-        elif self.provider in ("openai", "openrouter", "opencode", "custom"):
-            for cand_model in models_to_try:
-                try:
-                    headers = {
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json"
-                    }
-                    payload = {
-                        "model": cand_model,
-                        "messages": [
-                            {"role": "system", "content": PROMPT_VISION_OCR_PAGE},
-                            {
-                                "role": "user",
-                                "content": [
-                                    {"type": "text", "text": "Transcribe this scientific document page to Markdown with accurate LaTeX math and tables."},
-                                    {
-                                        "type": "image_url",
-                                        "image_url": {
-                                            "url": f"data:{mime_type};base64,{base64_img}"
-                                        }
-                                    }
-                                ]
-                            }
-                        ],
-                        "temperature": 0.1,
-                        "max_tokens": 4096
-                    }
-                    with httpx.Client(timeout=fast_timeout) as client:
-                        resp = client.post(f"{self.base_url}/chat/completions", json=payload, headers=headers)
-                        if resp.status_code == 200:
-                            data = resp.json()
-                            choices = data.get("choices", [])
-                            if choices:
-                                self._on_model_success(cand_model)
-                                from app.utils.thought_cleaner import strip_thought_content
-                                return strip_thought_content(choices[0].get("message", {}).get("content", "").strip())
-                        elif resp.status_code == 429:
-                            self._on_model_failure(cand_model, "Vision OCR rate limit 429")
-                            continue
-                except Exception as e:
-                    self._on_model_failure(cand_model, str(e))
-                    continue
-
-        # 3. Anthropic Claude Vision API
-        elif self.provider == "anthropic":
-            for claude_model in models_to_try:
-                try:
-                    headers = {
-                        "x-api-key": self.api_key,
-                        "anthropic-version": "2023-06-01",
-                        "Content-Type": "application/json"
-                    }
-                    payload = {
-                        "model": claude_model,
-                        "system": PROMPT_VISION_OCR_PAGE,
-                        "messages": [
-                            {
-                                "role": "user",
-                                "content": [
-                                    {
-                                        "type": "image",
-                                        "source": {
-                                            "type": "base64",
-                                            "media_type": mime_type,
-                                            "data": base64_img
-                                        }
-                                    },
-                                    {"type": "text", "text": "Transcribe this page to Markdown with precise LaTeX formulas."}
-                                ]
-                            }
-                        ],
-                        "max_tokens": 4096,
-                        "temperature": 0.1
-                    }
-                    with httpx.Client(timeout=fast_timeout) as client:
-                        resp = client.post(f"{self.base_url}/messages", json=payload, headers=headers)
-                        if resp.status_code == 200:
-                            data = resp.json()
-                            content_list = data.get("content", [])
-                            if content_list:
-                                self._on_model_success(claude_model)
-                                from app.utils.thought_cleaner import strip_thought_content
-                                return strip_thought_content(content_list[0].get("text", "").strip())
-                        elif resp.status_code == 429:
-                            self._on_model_failure(claude_model, "Claude Vision rate limit 429")
-                            continue
-                except Exception as e:
-                    self._on_model_failure(claude_model, str(e))
-                    continue
-
-        # Fallback to text representation
-        return self.document_to_markdown(raw_text_hint)

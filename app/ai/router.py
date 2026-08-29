@@ -103,9 +103,26 @@ class AIRouter:
         provider = self.get_active_provider()
         return provider.translate_text(text, source_lang=source_lang, target_lang=target_lang)
 
-    def document_to_markdown(self, page_content: str) -> str:
+    def generate(
+        self,
+        prompt: str = "",
+        system_prompt: str = "",
+        image_bytes: Optional[bytes] = None,
+        temperature: float = 0.1,
+        max_tokens: int = 4096
+    ) -> str:
         provider = self.get_active_provider()
-        return provider.document_to_markdown(page_content)
+        return provider.generate(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            image_bytes=image_bytes,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+
+    def ocr_crop_to_markdown(self, crop_bytes: bytes, block_type: str = "text", hint: str = "") -> str:
+        provider = self.get_active_provider()
+        return provider.ocr_crop_to_markdown(crop_bytes=crop_bytes, block_type=block_type, hint=hint)
 
     def ocr_image_to_markdown(self, image_bytes: bytes, raw_text_hint: str = "") -> str:
         provider = self.get_active_provider()

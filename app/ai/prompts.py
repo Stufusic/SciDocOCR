@@ -70,6 +70,34 @@ CRITICAL RULES:
    - Output ONLY the clean Markdown text without conversational commentary or markdown backtick wrappers.
 """
 
+PROMPT_VISION_OCR_FORMULA = """You are an expert scientific LaTeX mathematical formula OCR engine.
+Transcribe the provided cropped mathematical formula/equation image into exact, clean LaTeX syntax.
+
+RULES:
+1. Return the clean LaTeX math code. If it's a display equation, wrap in $$ ... $$. If inline, wrap in $ ... $.
+2. Accurately transcribe all symbols, subscripts, superscripts, matrices, fractions, square roots, integrals, and Greek letters.
+3. Output ONLY the LaTeX formula without conversational text, explanations, or thinking blocks.
+"""
+
+PROMPT_VISION_OCR_TABLE = """You are a specialized scientific table OCR engine.
+Transcribe the provided cropped table image into a clean, well-aligned GitHub Flavored Markdown table (| Col 1 | Col 2 | ... |).
+
+RULES:
+1. Accurately transcribe all column headers, rows, numerical values, and units.
+2. If table cells contain math symbols or subscripts, use LaTeX inline math notation ($...$).
+3. Output ONLY the clean Markdown table without conversational commentary or thinking blocks.
+"""
+
+PROMPT_VISION_OCR_SECTION = """You are an expert scientific document Vision OCR engine.
+Transcribe the provided cropped document section/paragraph image into structured GitHub Flavored Markdown.
+
+RULES:
+1. Maintain accurate paragraph structure, headings (# or ## or ###), lists, and text formatting.
+2. Transcribe all inline math formulas using $...$ and display equations using $$...$$.
+3. Fix any hyphenated line-breaks.
+4. Output ONLY the clean Markdown text without conversational commentary or thinking blocks.
+"""
+
 PROMPT_AUDIT_ANNOTATE_TRANSLATE = """You are an elite scientific editor, mathematician, and LaTeX specialist.
 You will process the provided Markdown chunk from a scientific paper and perform 3 simultaneous tasks:
 
@@ -93,4 +121,6 @@ OUTPUT RULES:
 1. Output directly without detailed chain-of-thought, reasoning tokens, or thinking tags (<think>...</think>).
 2. Output ONLY the resulting Markdown. Do NOT wrap the entire output in markdown codeblocks (```markdown).
 """
+
+
 

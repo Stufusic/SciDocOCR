@@ -10,6 +10,7 @@ from app.ocr.base import BaseOCR
 from app.ocr.local_ocr import LocalOCR
 from app.markdown.parser import MarkdownParser
 from app.models.layout_detector import DocumentLayoutDetector, LayoutRegion
+from app.models.latex_extractor import LatexExtractor
 from app.core.blocks import (
     BaseBlock, ParagraphBlock, FormulaBlock, HeadingBlock,
     TableBlock, FigureBlock, CaptionBlock, BlockType, BoundingBox
@@ -67,7 +68,7 @@ def match_native_text_for_bbox(
 
 
 class OCRRouter:
-    """Routes OCR tasks with high-speed YOLO bounding-box crop extraction and parallel LLM transcription."""
+    """Routes OCR tasks with high-speed YOLO bounding-box crop extraction and internal UniMERNet Math OCR."""
 
     def __init__(
         self,
@@ -78,6 +79,7 @@ class OCRRouter:
         self.mode = mode.lower()  # auto, local_only, online_only
         self.ai_router = ai_router
         self.layout_detector = layout_detector or DocumentLayoutDetector()
+        self.latex_extractor = LatexExtractor()
         self.markdown_parser = MarkdownParser()
 
     def process_page(
@@ -168,10 +170,30 @@ class OCRRouter:
                                 caption=f"Table on page {page_num}"
                             )]
 
-                        # C. Formula: High-precision LaTeX math (Parallel LLM Vision OCR)
+                        # C. Formula: Internal UniMERNet Math OCR (0ms API) -> Fallback to Parallel LLM Vision OCR
                         elif lbl == "formula":
-                            native_hint = match_native_text_for_bbox(bbox, blocks, img_w, img_h, page_width, page_height)
-                            llm_tasks.append((idx, region, crop_bytes, saved_img_path, "formula", native_hint))
+                            local_math = ""
+                            if self.latex_extractor.unimer_model is not None or self.latex_extractor.pix2tex_model is not None:
+                                try:
+                                    crop_pil = Image.open(io.BytesIO(crop_bytes))
+                                    local_math = self.latex_extractor.predict(crop_pil)
+                                except Exception:
+                                    local_math = ""
+
+                            if local_math:
+                                logger.info(f"Page {page_num}: Formula block {idx} transcribed internally via UniMERNet/Local.")
+                                ordered_results[idx] = [FormulaBlock(
+                                    id=f"formula_p{page_num}_{idx}",
+                                    bbox=bbox,
+                                    source_page=page_num,
+                                    confidence=conf,
+                                    latex=local_math,
+                                    image_crop_path=saved_img_path,
+                                    is_inline=False
+                                )]
+                            else:
+                                native_hint = match_native_text_for_bbox(bbox, blocks, img_w, img_h, page_width, page_height)
+                                llm_tasks.append((idx, region, crop_bytes, saved_img_path, "formula", native_hint))
 
                         # D. Section Title / Heading: Native text fast-match
                         elif lbl in ("title", "section-header"):

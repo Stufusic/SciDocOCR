@@ -13,11 +13,38 @@ from app.utils.logging import get_logger
 logger = get_logger("LatexExtractor")
 
 class LatexExtractor:
-    """Extracts and normalizes complex scientific LaTeX equations."""
+    """Extracts and normalizes complex scientific LaTeX equations using UniMERNet or pix2tex."""
 
     def __init__(self):
+        self.unimer_model = None
         self.pix2tex_model = None
-        self._init_pix2tex()
+        self._init_unimernet()
+        if self.unimer_model is None:
+            self._init_pix2tex()
+
+    def _init_unimernet(self):
+        """Initializes UniMERNet formula recognition engine if weights are present."""
+        try:
+            from app.utils.downloader import get_default_model_dir
+            model_dir = get_default_model_dir()
+            weights_candidates = [
+                model_dir / "unimernet_base.pth",
+                model_dir / "unimernet.pth",
+                Path.home() / ".scidoc" / "models" / "unimernet_base.pth"
+            ]
+            for wp in weights_candidates:
+                if wp.exists() and wp.stat().st_size > 500_000:
+                    try:
+                        import torch
+                        from unimernet.model import UniMERNet
+                        self.unimer_model = UniMERNet.from_pretrained(str(wp.parent))
+                        self.unimer_model.eval()
+                        logger.info(f"UniMERNet Formula OCR model loaded successfully from {wp}")
+                        return
+                    except Exception as load_err:
+                        logger.debug(f"UniMERNet module load info: {load_err}")
+        except Exception as e:
+            logger.debug(f"UniMERNet check: {e}")
 
     def _init_pix2tex(self):
         """Initializes pix2tex (LaTeX-OCR) if installed."""
@@ -26,19 +53,27 @@ class LatexExtractor:
             self.pix2tex_model = LatexOCR()
             logger.info("pix2tex LaTeX-OCR model initialized successfully.")
         except Exception:
-            # Fallback to structural LaTeX normalizer
             self.pix2tex_model = None
 
     def predict(self, input_data: Union[Image.Image, str]) -> str:
         """
-        Extracts LaTeX from an image crop or raw mathematical text string.
+        Extracts LaTeX from an image crop or raw mathematical text string using internal UniMERNet / pix2tex.
         """
-        if isinstance(input_data, Image.Image) and self.pix2tex_model is not None:
-            try:
-                latex = self.pix2tex_model(input_data)
-                return self.normalize_equation(latex)
-            except Exception as e:
-                logger.error(f"pix2tex prediction failed: {e}")
+        if isinstance(input_data, Image.Image):
+            if self.unimer_model is not None:
+                try:
+                    res = self.unimer_model(input_data)
+                    if isinstance(res, str) and res.strip():
+                        return self.normalize_equation(res)
+                except Exception as unimer_err:
+                    logger.debug(f"UniMERNet prediction error: {unimer_err}")
+
+            if self.pix2tex_model is not None:
+                try:
+                    latex = self.pix2tex_model(input_data)
+                    return self.normalize_equation(latex)
+                except Exception as e:
+                    logger.debug(f"pix2tex prediction failed: {e}")
 
         raw_str = str(input_data) if not isinstance(input_data, Image.Image) else ""
         return self.normalize_equation(raw_str)

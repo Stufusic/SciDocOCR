@@ -311,13 +311,15 @@ class DocumentLayoutDetector:
         self,
         pil_image: Image.Image,
         page_num: int = 1,
+        doc_stem: str = "doc",
+        blocks_dir: Optional[Path] = None,
         image_dir: Optional[Path] = None,
         padding: int = 6
     ) -> List[Tuple[LayoutRegion, bytes, Optional[str]]]:
         """
         Runs YOLO to detect layout bounding boxes, crops each region from the page image,
-        and returns a list of (region, crop_bytes, saved_image_rel_path).
-        Figures are automatically saved to disk directly.
+        and saves cropped block images to blocks_dir with standard naming:
+        block_{order}_{x0}_{y0}_{x1}_{y1}_{doc_stem}_{label}.png
         """
         regions = self.detect_regions_from_image(pil_image)
         if not regions:
@@ -326,9 +328,13 @@ class DocumentLayoutDetector:
         sorted_regions = self.sort_regions_reading_order(regions, page_width=float(pil_image.width))
         results: List[Tuple[LayoutRegion, bytes, Optional[str]]] = []
         import io
-        fig_counter = 0
 
-        for r in sorted_regions:
+        if blocks_dir:
+            Path(blocks_dir).mkdir(parents=True, exist_ok=True)
+        if image_dir:
+            Path(image_dir).mkdir(parents=True, exist_ok=True)
+
+        for order_idx, r in enumerate(sorted_regions, 1):
             w, h = r.bbox.width, r.bbox.height
             if w < 10 or h < 10:
                 continue
@@ -346,14 +352,22 @@ class DocumentLayoutDetector:
             cropped.save(buf, format="PNG")
             crop_bytes = buf.getvalue()
 
-            saved_rel_path = None
-            if r.label == "figure":
-                fig_counter += 1
-                fig_filename = f"fig_p{page_num}_{fig_counter}.png"
-                if image_dir:
-                    image_dir.mkdir(parents=True, exist_ok=True)
-                    cropped.save(image_dir / fig_filename, "PNG")
-                saved_rel_path = f"images/{fig_filename}"
+            # Naming format: block_{order}_{x0}_{y0}_{x1}_{y1}_{doc_stem}_{label}.png
+            clean_stem = re.sub(r"[^\w\-.]", "_", doc_stem)
+            block_filename = f"block_{order_idx:03d}_{x0}_{y0}_{x1}_{y1}_{clean_stem}_{r.label}.png"
+            saved_rel_path = f"blocks/{block_filename}"
+
+            if blocks_dir:
+                try:
+                    cropped.save(Path(blocks_dir) / block_filename, "PNG")
+                except Exception as e:
+                    logger.warning(f"Could not save block crop {block_filename}: {e}")
+
+            if r.label == "figure" and image_dir:
+                try:
+                    cropped.save(Path(image_dir) / f"fig_p{page_num}_{order_idx}.png", "PNG")
+                except Exception:
+                    pass
 
             results.append((r, crop_bytes, saved_rel_path))
 

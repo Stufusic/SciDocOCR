@@ -40,6 +40,8 @@ class OCRRouter:
         image_bytes: Optional[bytes] = None,
         preview_image_path: Optional[str] = None,
         image_dir: Optional[Path] = None,
+        blocks_dir: Optional[Path] = None,
+        doc_stem: str = "doc",
         figure_blocks: Optional[List[BaseBlock]] = None
     ) -> List[BaseBlock]:
         page_num = page_index + 1
@@ -69,13 +71,18 @@ class OCRRouter:
         if self.ai_router is not None and pil_img is not None:
             engine_name = "Local Model" if self.mode == "local_only" else "Online AI"
             try:
-                # Run YOLO detection and crop each region with padding in reading order
+                # Run YOLO detection and crop each region into blocks_dir
                 crop_results = self.layout_detector.detect_and_crop_regions(
-                    pil_img, page_num=page_num, image_dir=image_dir, padding=6
+                    pil_img,
+                    page_num=page_num,
+                    doc_stem=doc_stem,
+                    blocks_dir=blocks_dir,
+                    image_dir=image_dir,
+                    padding=6
                 )
 
                 if crop_results:
-                    logger.info(f"Page {page_num}: YOLO detected {len(crop_results)} bounding boxes. Transcribing cropped regions via {engine_name}...")
+                    logger.info(f"Page {page_num}: YOLO detected {len(crop_results)} bounding boxes. Processing blocks (tables & figures preserved directly)...")
                     processed_blocks: List[BaseBlock] = []
 
                     for idx, (region, crop_bytes, saved_img_path) in enumerate(crop_results, 1):
@@ -83,9 +90,9 @@ class OCRRouter:
                         bbox = region.bbox
                         conf = region.confidence
 
-                        # A. Figure: Direct image path (no LLM call needed!)
+                        # A. Figure: Direct image path in blocks/ (NO LLM upload!)
                         if lbl == "figure":
-                            img_path = saved_img_path or f"images/fig_p{page_num}_{idx}.png"
+                            img_path = saved_img_path or f"blocks/block_{idx:03d}_{doc_stem}_figure.png"
                             processed_blocks.append(FigureBlock(
                                 id=f"fig_p{page_num}_{idx}",
                                 bbox=bbox,
@@ -95,7 +102,20 @@ class OCRRouter:
                                 caption=f"Figure on page {page_num}"
                             ))
 
-                        # B. Formula: Targeted LaTeX Math Transcription
+                        # B. Table: Direct image preservation in blocks/ (NO LLM upload!)
+                        elif lbl == "table":
+                            tbl_path = saved_img_path or f"blocks/block_{idx:03d}_{doc_stem}_table.png"
+                            processed_blocks.append(TableBlock(
+                                id=f"table_p{page_num}_{idx}",
+                                bbox=bbox,
+                                source_page=page_num,
+                                confidence=conf,
+                                image_crop_path=tbl_path,
+                                rows=[],
+                                caption=f"Table on page {page_num}"
+                            ))
+
+                        # C. Formula: Targeted LaTeX Math Transcription via LLM
                         elif lbl == "formula":
                             latex_raw = self.ai_router.ocr_crop_to_markdown(crop_bytes=crop_bytes, block_type="formula")
                             clean_math = clean_latex_math(latex_raw) or latex_raw
@@ -106,19 +126,8 @@ class OCRRouter:
                                     source_page=page_num,
                                     confidence=conf,
                                     latex=clean_math,
+                                    image_crop_path=saved_img_path,
                                     is_inline=False
-                                ))
-
-                        # C. Table: Targeted Markdown Table Transcription
-                        elif lbl == "table":
-                            table_md = self.ai_router.ocr_crop_to_markdown(crop_bytes=crop_bytes, block_type="table")
-                            if table_md:
-                                processed_blocks.append(TableBlock(
-                                    id=f"table_p{page_num}_{idx}",
-                                    bbox=bbox,
-                                    source_page=page_num,
-                                    confidence=conf,
-                                    markdown_table=table_md
                                 ))
 
                         # D. Section Title / Heading

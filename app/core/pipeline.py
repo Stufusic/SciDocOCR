@@ -173,12 +173,18 @@ class JobPipelineWorker(QThread):
                         is_scanned=info.is_scanned
                     )
 
-                    # 1. Render Page Image directly to bytes and save file in 1 step
-                    preview_file = self.project.images_dir / f"page_{page_num}.png"
+                    # 1. Render Page Image directly to bytes and save to pages/{page_num}.png and images/page_{page_num}.png
+                    page_img_file = self.project.pages_dir / f"{page_num}.png"
                     img_bytes = renderer.render_page_to_bytes(p_idx, dpi=render_dpi)
-                    with open(preview_file, "wb") as f:
+                    with open(page_img_file, "wb") as f:
                         f.write(img_bytes)
-                    page_data.preview_image_path = str(preview_file)
+
+                    # Also copy/save to images_dir for preview compatibility
+                    legacy_preview_file = self.project.images_dir / f"page_{page_num}.png"
+                    with open(legacy_preview_file, "wb") as f:
+                        f.write(img_bytes)
+
+                    page_data.preview_image_path = str(page_img_file)
 
                     # 2. Page hash for caching
                     page_sha = compute_bytes_sha256(img_bytes)
@@ -195,8 +201,12 @@ class JobPipelineWorker(QThread):
                     else:
                         # 3. YOLOv10m ONNX Layout & Section Bounding Box Detection
                         raw_blocks = extractor.extract_page_blocks(p_idx)
-                        layout_routed_blocks = self.layout_detector.classify_and_route_blocks(raw_blocks, page_num=page_num, preview_image_path=str(preview_file))
-                        figure_blocks = self.layout_detector.extract_figures_from_page(str(preview_file), page_num=page_num, image_dir=self.project.images_dir)
+                        layout_routed_blocks = self.layout_detector.classify_and_route_blocks(
+                            raw_blocks, page_num=page_num, preview_image_path=str(page_img_file)
+                        )
+                        figure_blocks = self.layout_detector.extract_figures_from_page(
+                            str(page_img_file), page_num=page_num, image_dir=self.project.images_dir
+                        )
 
                         # Emit immediate layout detection preview for UI display BEFORE sending to LLM
                         layout_preview_page = PageData(
@@ -204,7 +214,7 @@ class JobPipelineWorker(QThread):
                             width_pt=info.width,
                             height_pt=info.height,
                             is_scanned=info.is_scanned,
-                            preview_image_path=str(preview_file)
+                            preview_image_path=str(page_img_file)
                         )
                         for b in (layout_routed_blocks + figure_blocks):
                             layout_preview_page.add_block(b)
@@ -213,14 +223,17 @@ class JobPipelineWorker(QThread):
                         logger.info(f"Page {page_num}: YOLOv10 detected {len(layout_preview_page.blocks)} layout regions. Sent layout preview to UI before pushing to LLM.")
 
                         # 4. Push High-Res Image to Vision AI (Online VLM / Local Model) to OCR Section contents & LaTeX formulas
+                        doc_stem = Path(pdf_path).stem
                         processed_blocks = self.ocr_router.process_page(
                             blocks=layout_routed_blocks,
                             page_index=p_idx,
                             page_width=info.width,
                             page_height=info.height,
                             image_bytes=img_bytes,
-                            preview_image_path=str(preview_file),
+                            preview_image_path=str(page_img_file),
                             image_dir=self.project.images_dir,
+                            blocks_dir=self.project.blocks_dir,
+                            doc_stem=doc_stem,
                             figure_blocks=figure_blocks
                         )
                         for b in processed_blocks:

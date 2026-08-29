@@ -156,6 +156,14 @@ class LaTeXGenerator:
 
         elif btype == BlockType.TABLE and isinstance(block, TableBlock):
             if not block.rows:
+                if getattr(block, "image_crop_path", None):
+                    img_p = str(block.image_crop_path).replace("\\", "/")
+                    lines = ["\\begin{table}[htbp]", "\\centering"]
+                    lines.append(f"\\includegraphics[width=0.9\\linewidth]{{{img_p}}}")
+                    if block.caption:
+                        lines.append(f"\\caption{{{self.escape_latex(block.caption)}}}")
+                    lines.append("\\end{table}\n")
+                    return "\n".join(lines)
                 return ""
             num_cols = len(block.rows[0])
             col_spec = "|" + "|".join(["c"] * num_cols) + "|"

@@ -615,15 +615,34 @@ class MainWindow(QMainWindow):
 
             out_dir.mkdir(parents=True, exist_ok=True)
 
-            # 1. Copy images folder so exported Markdown and LaTeX can render images seamlessly
-            if opts.get("images", True) and self.current_project.images_dir.exists():
-                export_img_dir = out_dir / "images"
-                export_img_dir.mkdir(parents=True, exist_ok=True)
-                for img_f in self.current_project.images_dir.glob("*.*"):
-                    try:
-                        shutil.copy2(img_f, export_img_dir / img_f.name)
-                    except Exception as e:
-                        logger.warning(f"Could not copy image {img_f}: {e}")
+            # 1. Copy pages, blocks, and images folders so all assets are grouped inside the document folder
+            if self.current_project:
+                if self.current_project.pages_dir.exists():
+                    export_pages_dir = out_dir / "pages"
+                    export_pages_dir.mkdir(parents=True, exist_ok=True)
+                    for pf in self.current_project.pages_dir.glob("*.png"):
+                        try:
+                            shutil.copy2(pf, export_pages_dir / pf.name)
+                        except Exception:
+                            pass
+
+                if self.current_project.blocks_dir.exists():
+                    export_blocks_dir = out_dir / "blocks"
+                    export_blocks_dir.mkdir(parents=True, exist_ok=True)
+                    for bf in self.current_project.blocks_dir.glob("*.png"):
+                        try:
+                            shutil.copy2(bf, export_blocks_dir / bf.name)
+                        except Exception:
+                            pass
+
+                if opts.get("images", True) and self.current_project.images_dir.exists():
+                    export_img_dir = out_dir / "images"
+                    export_img_dir.mkdir(parents=True, exist_ok=True)
+                    for img_f in self.current_project.images_dir.glob("*.*"):
+                        try:
+                            shutil.copy2(img_f, export_img_dir / img_f.name)
+                        except Exception as e:
+                            logger.warning(f"Could not copy image {img_f}: {e}")
 
             # 2. Export Markdown (.md) - prioritizing latest edited/translated content in viewer
             if opts["markdown"]:
@@ -715,15 +734,34 @@ class MainWindow(QMainWindow):
             doc_out_dir = self.batch_export_dir / safe_stem
             doc_out_dir.mkdir(parents=True, exist_ok=True)
 
-            # 1. Copy images
-            if self.current_project and self.current_project.images_dir.exists():
-                img_out = doc_out_dir / "images"
-                img_out.mkdir(parents=True, exist_ok=True)
-                for img_f in self.current_project.images_dir.glob("*.*"):
-                    try:
-                        shutil.copy2(img_f, img_out / img_f.name)
-                    except Exception:
-                        pass
+            # 1. Copy pages, blocks, and images
+            if self.current_project:
+                if self.current_project.pages_dir.exists():
+                    p_out = doc_out_dir / "pages"
+                    p_out.mkdir(parents=True, exist_ok=True)
+                    for pf in self.current_project.pages_dir.glob("*.png"):
+                        try:
+                            shutil.copy2(pf, p_out / pf.name)
+                        except Exception:
+                            pass
+
+                if self.current_project.blocks_dir.exists():
+                    b_out = doc_out_dir / "blocks"
+                    b_out.mkdir(parents=True, exist_ok=True)
+                    for bf in self.current_project.blocks_dir.glob("*.png"):
+                        try:
+                            shutil.copy2(bf, b_out / bf.name)
+                        except Exception:
+                            pass
+
+                if self.current_project.images_dir.exists():
+                    img_out = doc_out_dir / "images"
+                    img_out.mkdir(parents=True, exist_ok=True)
+                    for img_f in self.current_project.images_dir.glob("*.*"):
+                        try:
+                            shutil.copy2(img_f, img_out / img_f.name)
+                        except Exception:
+                            pass
 
             # 2. Export Markdown (.md)
             md_text = self.markdown_viewer.get_markdown().strip() or self.markdown_renderer.render_document(doc)

@@ -30,6 +30,9 @@ class MarkdownRenderer:
 
         elif btype == BlockType.TABLE and isinstance(block, TableBlock):
             if not block.rows:
+                if getattr(block, "image_crop_path", None):
+                    caption = block.caption or "Table"
+                    return f"\n![{caption}]({block.image_crop_path})\n"
                 return ""
             md_lines = []
             if block.caption:

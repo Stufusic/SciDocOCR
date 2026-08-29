@@ -20,6 +20,8 @@ class SciDocProject:
         self.source_dir = self.project_dir / "source"
         self.output_dir = self.project_dir / "output"
         self.images_dir = self.project_dir / "images"
+        self.pages_dir = self.project_dir / "pages"
+        self.blocks_dir = self.project_dir / "blocks"
         self.cache_dir = self.project_dir / "cache"
         self.project_file = self.project_dir / "project.json"
 
@@ -32,9 +34,13 @@ class SciDocProject:
         """Initializes a new project workspace directory with clean state."""
         project = cls(project_dir)
         
-        # Clean previous generated files in images and output if directory existed
+        # Clean previous generated files in images, pages, blocks, and output if directory existed
         if project.images_dir.exists():
             shutil.rmtree(project.images_dir, ignore_errors=True)
+        if project.pages_dir.exists():
+            shutil.rmtree(project.pages_dir, ignore_errors=True)
+        if project.blocks_dir.exists():
+            shutil.rmtree(project.blocks_dir, ignore_errors=True)
         if project.output_dir.exists():
             shutil.rmtree(project.output_dir, ignore_errors=True)
         if project.source_dir.exists():
@@ -44,6 +50,8 @@ class SciDocProject:
         project.source_dir.mkdir(exist_ok=True)
         project.output_dir.mkdir(exist_ok=True)
         project.images_dir.mkdir(exist_ok=True)
+        project.pages_dir.mkdir(exist_ok=True)
+        project.blocks_dir.mkdir(exist_ok=True)
         project.cache_dir.mkdir(exist_ok=True)
 
         # Copy source PDF to project/source/

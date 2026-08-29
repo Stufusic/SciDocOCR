@@ -113,6 +113,7 @@ class TableBlock(BaseBlock):
     caption: str = ""
     raw_latex: str = ""
     markdown_table: str = ""
+    image_crop_path: Optional[str] = None
 
     def __post_init__(self):
         self.block_type = BlockType.TABLE
@@ -124,6 +125,7 @@ class TableBlock(BaseBlock):
                 cells = [c.strip() for c in l.split("|")[1:-1]]
                 if any(cells):
                     self.rows.append(cells)
+
 
 
 

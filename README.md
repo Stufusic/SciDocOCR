@@ -1,4 +1,4 @@
-# ⚡ SciDoc OCR Studio — Scientific Document OCR & Publishing System
+# ⚡ SciDoc OCR Studio v1.0.1 — Scientific Document OCR & Publishing System
 
 <div align="center">
 
@@ -6,16 +6,26 @@
 
 ### Hệ thống OCR Tài Liệu Khoa Học Đa Cột, Bóc Tách Công Thức Toán LaTeX, Dịch Thuật Bảo Toàn & Trợ Lý AI
 
-[![Release](https://img.shields.io/github/v/release/Stufusic/SciDocOCR?color=blue&logo=github&label=Release)](https://github.com/Stufusic/SciDocOCR/releases)
+[![Release](https://img.shields.io/github/v/release/Stufusic/SciDocOCR?color=blue&logo=github&label=Release%20v1.0.1)](https://github.com/Stufusic/SciDocOCR/releases)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![PySide6](https://img.shields.io/badge/GUI-PySide6%20(Qt6)-green?logo=qt&logoColor=white)](https://pypi.org/project/PySide6/)
 [![YOLOv10m ONNX](https://img.shields.io/badge/Vision-YOLOv10m%20ONNX%20(CPU)-orange?logo=onnx&logoColor=white)](https://onnxruntime.ai/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Tests](https://img.shields.io/badge/Unit%20Tests-39%2F39%20Passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/Unit%20Tests-48%2F48%20Passed-brightgreen)](tests/)
 
-[⬇️ Tải Bản Release](#-tải-về-bản-phát-hành-mới-nhất-releases) • [Cài Đặt Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh) • [Chế Độ CPU Only](#-dành-cho-máy-tính-không-có-gpu-nvidia-cpu-only-mode) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước-user-guide) • [Kiến Trúc Chunk & Dịch Trang](#-cơ-chế-xử-lý-chunk-ocr--dịch-thuật-từng-trang) • [Thử Nghiệm Bản PRO](#-thử-nghiệm-phiên-bản-nâng-cấp-scidoc-ocr-pro-studio-v102)
+[⬇️ Tải Bản Release](#-tải-về-bản-phát-hành-mới-nhất-releases) • [Cài Đặt Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh) • [Chế Độ CPU Only](#-dành-cho-máy-tính-không-có-gpu-nvidia-cpu-only-mode) • [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng-từng-bước-user-guide) • [Kiến Trúc Pipeline](#-kiến-trúc-pipeline-v101--xử-lý-tự-động-hàng-loạt) • [Thử Nghiệm Bản PRO](#-thử-nghiệm-phiên-bản-nâng-cấp-scidoc-ocr-pro-studio-v102)
 
 </div>
+
+---
+
+## 🚀 Điểm Mới Trong Phiên Bản v1.0.1
+
+* ⚡ **Quy Trình Dự Án & Xử Lý Tự Động Hàng Loạt ("Process All")**: Nút **⚡ Process All** chỉ hiện khi người dùng mở Thư mục Dự Án (`Open Project`). Hệ thống tự động quét toàn bộ tệp PDF, cho phép chọn vị trí xuất, sau đó tự động nạp tuần tự từng tài liệu từ trên xuống, bóc tách OCR và xuất trọn bộ vào thư mục riêng mang tên tài liệu đó rồi tự động nạp tài liệu tiếp theo.
+* 📦 **Module Tiện Ích Dùng Chung Chuẩn Hóa (`app/utils/common.py`)**: Tối ưu hóa toàn bộ codebase, gom các hàm xử lý ảnh độ phân giải cao cho Vision AI/LM Studio (`optimize_image_for_ai`), mã hóa Base64 Data URI, dọn rác và bộ nhớ đệm (`purge_directory`, `sanitize_filename`), lọc triệt để suy nghĩ nội bộ (`strip_thought_content`), băm SHA-256 và logging.
+* 🔄 **Cơ Chế Dự Phòng & Tự Động Xoay Vòng Model AI (Dynamic Failover)**: Tự động phát hiện model AI gặp sự cố (timeout, rate-limit, lỗi mạng) để chuyển sang model dự phòng ngay lập tức và ghi nhớ model hoạt động tốt nhất.
+* 🌐 **Dịch Thuật Markdown Siêu Tốc 1500 Ký Tự**: Hỗ trợ chia nhỏ văn bản theo từng khối ~1500 ký tự và stream trực tiếp lên giao diện, hỗ trợ cả **Google Translate** miễn phí và **AI LLM** với danh sách ngôn ngữ hiển thị đầy đủ tên quốc gia.
+* 📤 **Xuất Trọn Bộ Tài Liệu (Dedicated Export Bundle)**: Tùy chọn vị trí xuất bất kỳ, gom toàn bộ asset chuyển đổi (`.md`, `.tex`, `.pdf`, `_ast.json`) và thư mục ảnh `images/` vào một thư mục chuyên biệt.
 
 ---
 
@@ -28,7 +38,7 @@ Bạn có thể tải ngay bản phát hành đóng gói sẵn cho Windows:
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt & Khởi Chạy Nhanh
+## 🛠️ Hướng Dẫn Cài Đặt & Khởi Chạy Nhanh
 
 Bạn có thể lựa chọn 1 trong 3 cách sau để bắt đầu:
 
@@ -80,13 +90,13 @@ python -m app.main
 Nếu máy tính của bạn là **Laptop văn phòng, PC chỉ dùng CPU Intel / AMD hoặc card đồ họa onboard (iGPU)**, bạn **hoàn toàn yên tâm sử dụng 100% đầy đủ các tính năng** của SciDoc OCR Studio nhờ kiến trúc phân tầng tối ưu:
 
 ### 🌟 Các Tính Năng Hoạt Động Hoàn Hảo Trên Máy CPU:
-1. **⚡ Định Vị Bố Cục Bằng YOLOv10m ONNX Trên CPU (Theo Từng Chunk)**:
-   - Sử dụng kiến trúc **NMS-Free** của YOLOv10m kết hợp `onnxruntime` (`CPUExecutionProvider`) để phân vùng Layout (Section, Heading, Paragraph, Table, Formula) cho từng trang trong chunk với tốc độ siêu nhanh **~25ms – 40ms / trang**.
+1. **⚡ Định Vị Bố Cục Bằng YOLOv10m ONNX Trên CPU**:
+   - Sử dụng kiến trúc **NMS-Free** của YOLOv10m kết hợp `onnxruntime` (`CPUExecutionProvider`) để phân vùng Layout (Section, Heading, Paragraph, Table, Formula) với tốc độ siêu nhanh **~25ms – 40ms / trang**.
    - Nếu chưa tải file ONNX, hệ thống tự động fallback sang thuật toán **CV & Typography Heuristic Engine** có sẵn trong app $\rightarrow$ không bao giờ bị lỗi thiếu file.
 2. **🤖 Bóc Tách OCR Chuyên Sâu Bằng VLM (Online API hoặc Local Model)**:
-   - Các khung Section được chuyển tới mô hình Vision-Language (Google Gemini, OpenAI GPT-4o, Claude hoặc MinerU/LM Studio Local) để **chỉ tập trung OCR giải mã nội dung và công thức LaTeX** trong từng khung Section đó, trả về kết quả cấu trúc chuẩn xác theo từng chunk.
-3. **🌐 Dịch Thuật Tuần Tự Từng Trang (Page-by-Page Sequential Translation)**:
-   - Dịch tuần tự từng trang một (Page 1 $\to$ Page 2 $\to$ ...), tự động chia nhỏ câu ($\le 900$ ký tự) tránh lỗi HTTP 414 và bảo vệ tuyệt đối 100% công thức toán học (`$$...$$`, `$x$`).
+   - Các khung Section được tối ưu hóa ảnh và chuyển tới mô hình Vision-Language (Google Gemini, OpenAI GPT-4o, Claude hoặc LM Studio Local) để **chỉ tập trung OCR giải mã nội dung và công thức LaTeX** trong từng khung Section đó.
+3. **🌐 Dịch Thuật Tuần Tự & Stream 1500 Ký Tự**:
+   - Dịch tuần tự qua Google Translate hoặc LLM, tự động chia nhỏ khối $\le 1500$ ký tự chống lỗi HTTP 414 và bảo vệ tuyệt đối 100% công thức toán học (`$$...$$`, `$x$`).
 4. **📐 Xuất Bản Markdown, Mã Nguồn LaTeX & PDF Chất Lượng Cao**:
    - Tự động sinh file `.md`, `.tex` chuẩn hóa và biên dịch PDF qua XeLaTeX hoặc ReportLab PDF Fallback Engine tích hợp sẵn.
 
@@ -100,27 +110,25 @@ Giao diện Studio được thiết kế theo cấu trúc 3 khung nhìn trực q
 ┌──────────────┬────────────────────────┬──────────────────────────────────────┐
 │  Dự Án (Tree)│   Trình Xem PDF Gốc    │  Markdown  │  LaTeX  │ 💬 AI Assistant│
 ├──────────────┼────────────────────────┼──────────────────────────────────────┤
-│ 📄 Page 1    │                        │                                      │
-│ 📄 Page 2    │  [Hiển thị trang PDF   │  [Văn bản bóc tách & công thức toán  │
-│ 📄 Page 3    │   kèm khung nhận diện] │   hiển thị trực tiếp theo thời gian  │
-│ ...          │                        │   thực kèm hình ảnh và bảng biểu]    │
+│ 📚 Dự Án (N) │                        │                                      │
+│ 1. ⏳ Chờ doc1│  [Hiển thị trang PDF   │  [Văn bản bóc tách & công thức toán  │
+│ 2. ⚡ Chạy doc2│   kèm khung nhận diện] │   hiển thị trực tiếp theo thời gian  │
+│ 3. ✓ Xong doc3│                        │   thực kèm hình ảnh và bảng biểu]    │
 └──────────────┴────────────────────────┴──────────────────────────────────────┘
 ```
 
-### Bước 1: Mở File PDF Khoa Học
-- Bấm vào nút **`📁 Open PDF`** trên thanh công cụ (Toolbar) và chọn tệp PDF cần xử lý.
-- Hệ thống sẽ tự động tạo không gian làm việc và nạp các trang tài liệu vào danh sách.
+### Bước 1: Mở File PDF Đơn Lẻ Hoặc Thư Mục Dự Án
+- **Mở 1 file PDF**: Bấm **`📂 Open PDF`** ➔ Chọn tài liệu PDF cần xử lý.
+- **Mở cả Dự án (Chứa nhiều PDF)**: Bấm **`📁 Open Project`** ➔ Chọn thư mục chứa các tài liệu. Nút **`⚡ Process All (N)`** sẽ lập tức xuất hiện kèm danh sách hàng đợi các tệp.
 
-### Bước 2: Bóc Tách Bố Cục & OCR Theo Chunk (`⚡ Process All`)
-- Bấm vào nút **`⚡ Process All`** trên thanh công cụ.
-- Hệ thống thực thi theo **Mô hình Pipeline 2 Tầng Theo Chunk**:
-  1. **YOLOv10m ONNX (CPU)** quét từng trang trong chunk để đóng khung chính xác tọa độ các Section, Bảng biểu, Hình ảnh và Công thức.
-  2. Gửi các vùng khung Section tới **VLM (Online API / Local Model)** để OCR giải mã chữ viết và công thức LaTeX chuyên sâu.
-  3. Lưu kết quả chunk xuống đĩa, render ảnh preview và gọi `gc.collect()` giải phóng RAM ngay trước khi chuyển sang chunk tiếp theo.
+### Bước 2: Bóc Tách Bố Cục & OCR Tự Động Hàng Loạt (`⚡ Process All`)
+- Bấm **`⚡ Process All`**:
+  1. Hộp thoại hiển thị xác nhận vị trí xuất kết quả (mặc định tại thư mục dự án hoặc người dùng tự chọn thư mục khác).
+  2. Hệ thống tự động nạp tài liệu 1 $\to$ Nhận diện bố cục YOLOv10 $\to$ Bóc tách công thức toán $\to$ Tự động xuất đầy đủ file vào thư mục `<Tên_Tài_Liệu>` $\to$ Tự động nạp tài liệu tiếp theo cho đến khi hoàn tất.
 
-### Bước 3: Dịch Thuật Tuần Tự Từng Trang (`🌐 Translate`)
+### Bước 3: Dịch Thuật Trực Tiếp (`🌐 Translate`)
 - Bấm vào nút **`🌐 Translate`** trên thanh công cụ:
-  - Hệ thống tiến hành **dịch tuần tự từng trang một (Page-by-Page)** theo luồng queue nhẹ nhàng.
+  - Hệ thống tiến hành **dịch theo các khối 1500 ký tự** và stream hiển thị trực tiếp.
   - Toàn bộ công thức toán học (`$$...$$`, `$x$`), code và trích dẫn được bảo vệ nguyên vẹn qua bộ đệm SHA-256.
 
 ### Bước 4: Tương Tác Với Trợ Lý AI Hỏi Đáp (`💬 AI Assistant`)
@@ -128,7 +136,6 @@ Giao diện Studio được thiết kế theo cấu trúc 3 khung nhìn trực q
   1. Chọn **Nhà cung cấp (Provider)**: Google Gemini, LM Studio (Local), OpenAI, Anthropic Claude, OpenRouter, hoặc Custom API.
   2. Hệ thống **tự động kết nối trực tiếp đến API để nạp toàn bộ danh sách mô hình mới nhất** vào thanh cuộn.
   3. Bấm **`⚙ API/URL`** nếu bạn muốn xem hoặc dán nhanh API Key / Base URL trực tiếp trong khung chat.
-  4. Đặt câu hỏi về nội dung tài liệu, giải thích công thức toán hoặc yêu cầu tóm tắt.
 
 ### Bước 5: Soát Lỗi Công Thức (`🔍 Review Mode`)
 - Nếu tài liệu có công thức chất lượng scan kém, nút **`🔍 Review (N)`** ở thanh trạng thái sẽ sáng lên.
@@ -136,37 +143,37 @@ Giao diện Studio được thiết kế theo cấu trúc 3 khung nhìn trực q
 
 ### Bước 6: Xuất Bản Đa Định Dạng (`📤 Export...`)
 - Bấm vào nút **`📤 Export...`** trên thanh công cụ:
-  - **Markdown (`.md`)**: Kèm toàn bộ thư mục hình ảnh `images/`.
-  - **LaTeX Source (`.tex`)**: Mã nguồn LaTeX chuẩn hóa với các gói `amsmath`, `amssymb`, `graphicx`.
-  - **Tài liệu PDF (`.pdf`)**: Tự động biên dịch qua XeLaTeX hoặc bộ tạo PDF tích hợp sẵn.
+  - Chọn thư mục xuất tùy ý.
+  - Hệ thống gom toàn bộ file **Markdown (`.md`)**, **LaTeX Source (`.tex`)**, **Tài liệu PDF (`.pdf`)**, **Cấu trúc AST (`.json`)** và thư mục ảnh **`images/`** vào một thư mục riêng biệt.
 
 ---
 
-## ⚙️ Cơ Chế Xử Lý Chunk OCR & Dịch Thuật Từng Trang
+## ⚙️ Kiến Trúc Pipeline v1.0.1 & Xử Lý Tự Động Hàng Loạt
 
-Để tối ưu hóa hiệu năng, chống tràn RAM và không bị nghẽn mạng, kiến trúc hệ thống phân tách rõ ràng:
+Kiến trúc hệ thống được chuẩn hóa theo chu trình đa luồng bất đồng bộ:
 
 ```mermaid
 flowchart TD
-    subgraph ChunkOCR ["1. OCR Theo Từng Chunk (4 Trang / Khối)"]
-        A[PDF 4-Page Chunk] --> B[YOLOv10m ONNX CPU: Định vị Layout & Khung Section]
-        B --> C[VLM Online/Local AI: Bóc tách OCR nội dung trong từng khung Section]
-        C --> D[Lưu Checkpoint Chunk xuống đĩa & del + gc.collect giải phóng RAM]
+    subgraph ProjectBatch ["1. Quản Lý Dự Án & Hàng Đợi (Batch Queue)"]
+        P[Thư mục Dự Án] --> Q[Quét toàn bộ file PDF]
+        Q --> R[Hiển thị hàng đợi: Chờ / Đang chạy / Đã xong]
+        R --> S[Xác nhận thư mục xuất]
     end
 
-    subgraph PageTranslate ["2. Dịch Thuật Tuần Tự Từng Trang (Page-by-Page)"]
-        E[Tài liệu AST sau OCR] --> F[Dịch tuần tự: Trang 1 -> Trang 2 -> Trang 3...]
-        F --> G[Chia nhỏ câu <= 900 ký tự & Bảo toàn công thức $$...$$, $x$]
-        G --> H[Lưu Cache SHA-256 & Cập nhật giao diện trực tiếp]
+    subgraph DocumentOCR ["2. Bóc Tách Bố Cục & OCR Từng Tài Liệu"]
+        S --> T[Nạp PDF tuần tự]
+        T --> U[YOLOv10m ONNX CPU: Định vị BBox & Layout]
+        U --> V[VLM Vision AI / LM Studio: Bóc tách LaTeX & Markdown]
+        V --> W[Dọn dẹp RAM & Giải phóng bộ đệm]
     end
 
-    ChunkOCR --> PageTranslate
+    subgraph AutoExport ["3. Tự Động Xuất & Chuyển Tiếp"]
+        W --> X[Xuất .md, .tex, .pdf, images/ vào Folder Tài Liệu]
+        X --> Y{Còn file trong hàng đợi?}
+        Y -- Có --> T
+        Y -- Hết --> Z[Thông báo hoàn tất & Nút Mở Thư Mục]
+    end
 ```
-
-### 🎯 Ưu Điểm Của Cơ Chế Này:
-1. **YOLOv10m dẫn đường cho VLM**: Thay vì để VLM tự đoán vị trí (dễ bị sai thứ tự đọc), YOLOv10m chạy trên CPU định vị sẵn từng khung Section, VLM chỉ việc đọc nội dung trong khung đó $\rightarrow$ độ chính xác đạt mức cao nhất.
-2. **Quản lý RAM theo Chunk**: Mỗi chunk sau khi hoàn tất bóc tách sẽ giải phóng toàn bộ tensors và buffer thô (`gc.collect()`), giúp xử lý tài liệu hàng trăm trang mà RAM không bao giờ bị tăng đột biến.
-3. **Dịch theo Trang độc lập**: Tách biệt khâu dịch ra từng trang giúp tránh lỗi nghẽn đường truyền HTTP 414, không lo dính rate-limit của dịch vụ dịch thuật và có thể xem kết quả dịch của trang ngay lập tức.
 
 ---
 
@@ -184,10 +191,12 @@ Trong giao diện **`⚙ Settings`**:
 ### 2. Nhóm Động Cơ Đám Mây (🌐 Online Cloud API Engine):
 - Hỗ trợ nhập và lưu trữ độc lập khóa API cho từng nhà cung cấp: **Google Gemini**, **OpenAI**, **Anthropic Claude**, **OpenRouter**, **Custom OpenAI-Compatible API**.
 - Tự động quét và nạp danh sách model thời gian thực (Live Model Discovery).
+- Tự động xoay vòng sang model tiếp theo nếu model chính gặp lỗi timeout hoặc hết quota.
 
 ### 3. Động Cơ Dịch Thuật (`Translation Engine`):
-- **`Google Translate`**: Miễn phí, tốc độ cực nhanh, chia nhỏ câu $\le 900$ ký tự chống lỗi HTTP 414.
+- **`Google Translate`**: Miễn phí, tốc độ cực nhanh, chia nhỏ khối $\le 1500$ ký tự.
 - **`AI LLM Translation`**: Dịch chuyên sâu kết hợp tự động sinh ghi chú giải thích công thức toán học (`> 💡`).
+- Danh sách ngôn ngữ nguồn và đích hiển thị đầy đủ tên quốc gia (Tiếng Anh, Tiếng Việt, Tiếng Pháp, Tiếng Đức, v.v.).
 
 ---
 

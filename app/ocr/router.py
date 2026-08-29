@@ -106,7 +106,7 @@ class OCRRouter:
                                     source_page=page_num,
                                     confidence=conf,
                                     latex=clean_math,
-                                    is_display=True
+                                    is_inline=False
                                 ))
 
                         # C. Table: Targeted Markdown Table Transcription

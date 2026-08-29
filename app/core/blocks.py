@@ -88,6 +88,8 @@ class ParagraphBlock(BaseBlock):
         self.block_type = BlockType.PARAGRAPH
 
 
+import re
+
 @dataclass
 class FormulaBlock(BaseBlock):
     latex: str = ""
@@ -96,9 +98,12 @@ class FormulaBlock(BaseBlock):
     is_valid: bool = True
     issues: List[str] = field(default_factory=list)
     image_crop_path: Optional[str] = None
+    is_display: bool = False
 
     def __post_init__(self):
         self.block_type = BlockType.FORMULA
+        if self.is_display and not self.is_inline:
+            self.is_inline = False
 
 
 @dataclass
@@ -107,9 +112,19 @@ class TableBlock(BaseBlock):
     header_rows: int = 1
     caption: str = ""
     raw_latex: str = ""
+    markdown_table: str = ""
 
     def __post_init__(self):
         self.block_type = BlockType.TABLE
+        if not self.rows and self.markdown_table:
+            lines = [l.strip() for l in self.markdown_table.strip().split("\n") if l.strip()]
+            for l in lines:
+                if l.startswith("|-") or re.match(r"^\|[\s\-:]+\|$", l):
+                    continue
+                cells = [c.strip() for c in l.split("|")[1:-1]]
+                if any(cells):
+                    self.rows.append(cells)
+
 
 
 @dataclass

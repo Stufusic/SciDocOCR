@@ -499,7 +499,7 @@ class SettingsDialog(QDialog):
         self.lbl_unimer_status.setStyleSheet("color: #14b8a6; font-size: 9.5pt; font-weight: 500;")
         unimer_box.addWidget(self.lbl_unimer_status, stretch=1)
 
-        self.btn_download_unimer = QPushButton("📥 Tải Model UniMERNet (~115MB)")
+        self.btn_download_unimer = QPushButton("📥 Tải UniMERNet Base (~260MB)")
         self.btn_download_unimer.setObjectName("secondaryBtn")
         self.btn_download_unimer.clicked.connect(self._download_unimer_model)
         unimer_box.addWidget(self.btn_download_unimer)

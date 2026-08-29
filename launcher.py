@@ -139,7 +139,7 @@ class SciDocLauncherGUI:
 
         self.btn_download_unimer = tk.Button(
             btn_bar,
-            text="📥 Tải UniMERNet Math",
+            text="📥 Tải UniMERNet Base (~260MB)",
             font=("Segoe UI", 10, "bold"),
             bg="#0f766e",
             fg="#f8fafc",

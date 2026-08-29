@@ -25,15 +25,15 @@ OFFICIAL_MODELS: Dict[str, Dict[str, Any]] = {
         "description": "Model YOLOv8 nhận diện phân vùng bố cục văn bản, bảng biểu, công thức toán trên CPU"
     },
     "unimernet": {
-        "name": "UniMERNet Formula OCR (Math LaTeX Recognition)",
-        "size_mb": 115.0,
-        "filename": "unimernet.pth",
+        "name": "UniMERNet Base (SOTA Math LaTeX - Highest Quality)",
+        "size_mb": 260.0,
+        "filename": "unimernet_base.pth",
         "urls": [
-            "https://huggingface.co/wanderkid/unimernet_small/resolve/main/pytorch_model.pth",
-            "https://hf-mirror.com/wanderkid/unimernet_small/resolve/main/pytorch_model.pth",
-            "https://huggingface.co/opendatalab/PDF-Extract-Kit-1.0/resolve/main/models/MFR/unimernet_small/pytorch_model.pth"
+            "https://huggingface.co/wanderkid/unimernet_base/resolve/main/pytorch_model.pth",
+            "https://hf-mirror.com/wanderkid/unimernet_base/resolve/main/pytorch_model.pth",
+            "https://huggingface.co/opendatalab/PDF-Extract-Kit-1.0/resolve/main/models/MFR/unimernet_base/pytorch_model.pth"
         ],
-        "description": "Model UniMERNet chuyên dụng nhận diện và giải mã công thức toán học sang LaTeX chuẩn"
+        "description": "Model UniMERNet Base (Chất lượng cao nhất) bóc tách và giải mã công thức toán học chuyên sâu sang mã nguồn LaTeX"
     }
 }
 

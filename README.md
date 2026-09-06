@@ -266,7 +266,7 @@ Phiên bản **SciDoc OCR PRO Studio v1.0.3** là bước nhảy vọt toàn di�
 
 ---
 
-### 🏛️ 4 Trụ Cột Tối Ưu Hóa Hiệu Năng Đỉnh Cao Trên Bản v1.0.3
+### 🏛️ 4 Trụ Cột Tối Ưu Hóa Hiệu Năng Đỉnh Cao Trên Bản v1.0.4
 
 1. **🌐 Global Execution Environment (Chống Nghẽn CPU Threading):**
    * *Vấn đề cũ:* Mỗi InferenceSession tạo một Thread Pool riêng rẽ, gây tranh chấp CPU Context-Switching nghiêm trọng khi chạy đồng thời nhiều model.
@@ -280,10 +280,10 @@ Phiên bản **SciDoc OCR PRO Studio v1.0.3** là bước nhảy vọt toàn di�
 
 ---
 
-### 📖 Hướng Dẫn Cài Đặt & Sử Dụng Chi Tiết Bản PRO v1.0.3
+### 📖 Hướng Dẫn Cài Đặt & Sử Dụng Chi Tiết Bản PRO v1.0.4
 
 #### Bước 1: Tải Về & Cài Đặt
-1. Tải tệp cài đặt **`SciDocOCR_Pro_v1.0.3_Setup.exe`** từ [GitHub Releases](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.4).
+1. Tải tệp cài đặt **`SciDocOCR_Pro_v1.0.4_Setup.exe`** từ [GitHub Releases](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.4).
 2. Nhấp đúp vào file cài đặt $\rightarrow$ Bấm **Next** qua các bước.
 3. Trình cài đặt sẽ tự động quét cấu hình phần cứng (CPU, GPU rời NVIDIA / GPU tích hợp iGPU, dung lượng RAM) và đề xuất chế độ tăng tốc tối ưu nhất:
    * 🟢 **CUDA GPU:** Dành cho máy có card đồ họa rời NVIDIA (Tốc độ tối đa).

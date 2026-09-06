@@ -244,7 +244,7 @@ Trong giao diện **`⚙ Settings`**:
 
 Phiên bản **SciDoc OCR PRO Studio v1.0.3** là bước nhảy vọt toàn diện về hiệu năng, công nghệ bóc tách AI và trải nghiệm người dùng máy tính để bàn (Windows Desktop App). Bản PRO được xây dựng trên nền tảng **Zero-Port Native Architecture** kết hợp hệ thống động cơ AI phân tầng chạy thuần 100% Offline trên GPU / CPU.
 
-* ⬇️ **Tải Bản Cài Đặt Setup Windows (.exe):** [Release SciDoc OCR PRO Studio (exe) v1.0.3 - Windows Release](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.3)
+* ⬇️ **Tải Bản Cài Đặt Setup Windows (.exe):** [Release SciDoc OCR PRO Studio (exe) v1.0.3 - Windows Release](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.4)
 * 📦 **Kho Mã Nguồn Bản PRO (Branch v1.0.4):** [https://github.com/Stufusic/SciDocOCR_Pro/tree/v1.0.4](https://github.com/Stufusic/SciDocOCR_Pro/tree/v1.0.4)
 
 ---

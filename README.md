@@ -240,18 +240,18 @@ Trong giao diện **`⚙ Settings`**:
 
 ---
 
-## 🌟 Thử Nghiệm Phiên Bản Nâng Cấp: SciDoc OCR PRO Studio (v1.0.3)
+## 🌟 Thử Nghiệm Phiên Bản Nâng Cấp: SciDoc OCR PRO Studio (v1.0.4)
 
 Phiên bản **SciDoc OCR PRO Studio v1.0.3** là bước nhảy vọt toàn diện về hiệu năng, công nghệ bóc tách AI và trải nghiệm người dùng máy tính để bàn (Windows Desktop App). Bản PRO được xây dựng trên nền tảng **Zero-Port Native Architecture** kết hợp hệ thống động cơ AI phân tầng chạy thuần 100% Offline trên GPU / CPU.
 
 * ⬇️ **Tải Bản Cài Đặt Setup Windows (.exe):** [Release SciDoc OCR PRO Studio (exe) v1.0.3 - Windows Release](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.3)
-* 📦 **Kho Mã Nguồn Bản PRO (Branch v1.0.3):** [https://github.com/Stufusic/SciDocOCR_Pro/tree/v1.0.3](https://github.com/Stufusic/SciDocOCR_Pro/tree/v1.0.3)
+* 📦 **Kho Mã Nguồn Bản PRO (Branch v1.0.4):** [https://github.com/Stufusic/SciDocOCR_Pro/tree/v1.0.4](https://github.com/Stufusic/SciDocOCR_Pro/tree/v1.0.4)
 
 ---
 
-### 📊 Bảng So Sánh Tính Năng: Bản PRO v1.0.3 vs Bản PRO v1.0.2
+### 📊 Bảng So Sánh Tính Năng: Bản PRO v1.0.4 vs Bản PRO v1.0.2
 
-| Tiêu Chí / Tính Năng | Bản PRO v1.0.2 | Bản PRO v1.0.3 (Mới Nhất 🚀) |
+| Tiêu Chí / Tính Năng | Bản PRO v1.0.2 | Bản PRO v1.0.4 (Mới Nhất 🚀) |
 |---|---|---|
 | **Động Cơ Bóc Tách Bố Cục (Layout Analysis)** | YOLOv8 DocLayNet ONNX | **PP-DocLayoutV3 (Server / Ultra)** chuyên biệt hóa tài liệu khoa học phức tạp, nhận diện đa cột, bảng biểu lồng nhau chính xác hơn **35%**. |
 | **Động Cơ Nhận Diện Ký Tự (Text OCR)** | Text Heuristics / VLM | **PP-OCRv6 Server / Mobile** tích hợp bộ phân loại góc xoay chữ tự động (Text Angle Cls), hỗ trợ toàn diện Tiếng Việt, Tiếng Anh & Ký hiệu toán học. |
@@ -283,7 +283,7 @@ Phiên bản **SciDoc OCR PRO Studio v1.0.3** là bước nhảy vọt toàn di�
 ### 📖 Hướng Dẫn Cài Đặt & Sử Dụng Chi Tiết Bản PRO v1.0.3
 
 #### Bước 1: Tải Về & Cài Đặt
-1. Tải tệp cài đặt **`SciDocOCR_Pro_v1.0.3_Setup.exe`** từ [GitHub Releases](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.3).
+1. Tải tệp cài đặt **`SciDocOCR_Pro_v1.0.3_Setup.exe`** từ [GitHub Releases](https://github.com/Stufusic/SciDocOCR/releases/tag/v1.0.4).
 2. Nhấp đúp vào file cài đặt $\rightarrow$ Bấm **Next** qua các bước.
 3. Trình cài đặt sẽ tự động quét cấu hình phần cứng (CPU, GPU rời NVIDIA / GPU tích hợp iGPU, dung lượng RAM) và đề xuất chế độ tăng tốc tối ưu nhất:
    * 🟢 **CUDA GPU:** Dành cho máy có card đồ họa rời NVIDIA (Tốc độ tối đa).
